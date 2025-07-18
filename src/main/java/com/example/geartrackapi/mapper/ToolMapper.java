@@ -9,7 +9,7 @@ public class ToolMapper {
     
     public ToolDto toDto(Tool tool) {
         return ToolDto.builder()
-                .uuid(tool.getUuid())
+                .uuid(tool.getId())
                 .name(tool.getName())
                 .factoryNumber(tool.getFactoryNumber())
                 .size(tool.getSize())

@@ -88,4 +88,14 @@ public class ToolCrudService {
 
         employeeToolRepository.deleteAll(employeeTools);
     }
+    
+    public List<AssignToolDto> getToolsAssignedToEmployee(UUID employeeId) {
+        log.debug("[getToolsAssignedToEmployee] Getting tools assigned to employee UUID: {}", employeeId);
+        UUID userId = SecurityUtils.authenticatedUserId();
+        List<EmployeeTool> employeeTools = employeeToolRepository.findByUserIdAndEmployeeId(userId, employeeId);
+        
+        return employeeTools.stream()
+                .map(employeeToolMapper::toAssignToolDto)
+                .collect(Collectors.toList());
+    }
 }

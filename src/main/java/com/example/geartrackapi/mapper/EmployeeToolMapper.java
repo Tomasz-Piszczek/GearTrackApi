@@ -9,7 +9,7 @@ public class EmployeeToolMapper {
     
     public AssignToolDto toAssignToolDto(EmployeeTool employeeTool) {
         return AssignToolDto.builder()
-                .uuid(employeeTool.getUuid())
+                .uuid(employeeTool.getId())
                 .employeeId(employeeTool.getEmployeeId())
                 .toolId(employeeTool.getToolId())
                 .quantity(employeeTool.getQuantity())

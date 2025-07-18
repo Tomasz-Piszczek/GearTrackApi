@@ -1,6 +1,6 @@
 -- Create users table
 CREATE TABLE users (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE users (
 
 -- Create employees table
 CREATE TABLE employees (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE employees (
 
 -- Create machines table
 CREATE TABLE machines (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE machines (
 
 -- Create machine_inspections table
 CREATE TABLE machine_inspections (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE machine_inspections (
 
 -- Create tools table
 CREATE TABLE tools (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE tools (
 
 -- Create employee_tools table (many-to-many relationship)
 CREATE TABLE employee_tools (
-    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id UUID NOT NULL,
@@ -74,16 +74,16 @@ CREATE TABLE employee_tools (
 
 -- Add foreign key constraints
 ALTER TABLE machines ADD CONSTRAINT fk_machines_employee_id 
-    FOREIGN KEY (employee_id) REFERENCES employees(uuid);
+    FOREIGN KEY (employee_id) REFERENCES employees(id);
 
 ALTER TABLE machine_inspections ADD CONSTRAINT fk_machine_inspections_machine_id 
-    FOREIGN KEY (machine_id) REFERENCES machines(uuid);
+    FOREIGN KEY (machine_id) REFERENCES machines(id);
 
 ALTER TABLE employee_tools ADD CONSTRAINT fk_employee_tools_employee_id 
-    FOREIGN KEY (employee_id) REFERENCES employees(uuid);
+    FOREIGN KEY (employee_id) REFERENCES employees(id);
 
 ALTER TABLE employee_tools ADD CONSTRAINT fk_employee_tools_tool_id 
-    FOREIGN KEY (tool_id) REFERENCES tools(uuid);
+    FOREIGN KEY (tool_id) REFERENCES tools(id);
 
 -- Create indexes for better performance
 CREATE INDEX idx_machines_employee_id ON machines(employee_id);

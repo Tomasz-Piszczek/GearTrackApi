@@ -3,7 +3,7 @@ spring:
     name: GearTrackApi
     
   datasource:
-    url: jdbc:postgresql://localhost:5432/geartrack
+    url: jdbc:postgresql://localhost:5435/geartrack
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
@@ -22,28 +22,13 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
-            scope:
-              - email
-              - profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
-            user-name-attribute: email
 
 app:
   jwt:
     secret: ${JWT_SECRET:myVerySecretKeyForJWTTokensThatShouldBeAtLeast32Characters}
     expiration: 86400000
+  google:
+    client-id: 445794691525-hs55893o7q75k1ci3h6k27mkm2vciksb.apps.googleusercontent.com
 
 logging:
   level:
