@@ -1,5 +1,6 @@
 package com.example.geartrackapi.service;
 
+import com.example.geartrackapi.controller.common.dto.PagedResponse;
 import com.example.geartrackapi.controller.employee.dto.EmployeeDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.repository.EmployeeRepository;
@@ -8,6 +9,8 @@ import com.example.geartrackapi.security.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,8 +25,30 @@ public class EmployeeCrudService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
     
-    public List<EmployeeDto> findAllEmployees() {
-        log.debug("[findAllEmployees] Getting all employees for authenticated user");
+    public PagedResponse<EmployeeDto> findAllEmployees(Pageable pageable) {
+        log.debug("[findAllEmployees] Getting paginated employees for authenticated user");
+        UUID userId = SecurityUtils.authenticatedUserId();
+        Page<Employee> employeePage = employeeRepository.findByUserId(userId, pageable);
+        
+        List<EmployeeDto> employeeDtos = employeePage.getContent()
+                .stream()
+                .map(employeeMapper::toDto)
+                .collect(Collectors.toList());
+        
+        return PagedResponse.of(
+                employeeDtos,
+                employeePage.getNumber(),
+                employeePage.getSize(),
+                employeePage.getTotalElements(),
+                employeePage.getTotalPages(),
+                employeePage.isFirst(),
+                employeePage.isLast(),
+                employeePage.isEmpty()
+        );
+    }
+    
+    public List<EmployeeDto> findAllEmployeesNonPaginated() {
+        log.debug("[findAllEmployeesNonPaginated] Getting all employees for authenticated user");
         UUID userId = SecurityUtils.authenticatedUserId();
         return employeeRepository.findByUserId(userId)
                 .stream()

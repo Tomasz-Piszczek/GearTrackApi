@@ -1,5 +1,6 @@
 package com.example.geartrackapi.service;
 
+import com.example.geartrackapi.controller.common.dto.PagedResponse;
 import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.dao.model.Machine;
@@ -9,6 +10,8 @@ import com.example.geartrackapi.security.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,8 +26,30 @@ public class MachineCrudService {
     private final MachineRepository machineRepository;
     private final MachineMapper machineMapper;
     
-    public List<MachineDto> findAllMachines() {
-        log.debug("[findAllMachines] Getting all machines for authenticated user");
+    public PagedResponse<MachineDto> findAllMachines(Pageable pageable) {
+        log.debug("[findAllMachines] Getting paginated machines for authenticated user");
+        UUID userId = SecurityUtils.authenticatedUserId();
+        Page<Machine> machinePage = machineRepository.findByUserId(userId, pageable);
+        
+        List<MachineDto> machineDtos = machinePage.getContent()
+                .stream()
+                .map(machineMapper::toDto)
+                .collect(Collectors.toList());
+        
+        return PagedResponse.of(
+                machineDtos,
+                machinePage.getNumber(),
+                machinePage.getSize(),
+                machinePage.getTotalElements(),
+                machinePage.getTotalPages(),
+                machinePage.isFirst(),
+                machinePage.isLast(),
+                machinePage.isEmpty()
+        );
+    }
+    
+    public List<MachineDto> findAllMachinesNonPaginated() {
+        log.debug("[findAllMachinesNonPaginated] Getting all machines for authenticated user");
         UUID userId = SecurityUtils.authenticatedUserId();
         return machineRepository.findByUserId(userId)
                 .stream()
