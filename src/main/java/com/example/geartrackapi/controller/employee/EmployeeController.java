@@ -51,6 +51,12 @@ public class EmployeeController {
         return employeeCrudService.findAllEmployeesNonPaginated();
     }
     
+    @GetMapping("/{id}")
+    public EmployeeDto findEmployeeById(@PathVariable UUID id) {
+        log.info("[findEmployeeById] Getting employee with UUID: {}", id);
+        return employeeCrudService.findEmployeeById(id);
+    }
+    
     @PostMapping
     public EmployeeDto createEmployee(@RequestBody EmployeeDto employeeDto) {
         log.info("[createEmployee] Creating employee with name: {} {}", employeeDto.getFirstName(), employeeDto.getLastName());

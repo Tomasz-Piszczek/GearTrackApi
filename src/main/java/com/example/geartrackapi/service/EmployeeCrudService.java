@@ -56,6 +56,19 @@ public class EmployeeCrudService {
                 .collect(Collectors.toList());
     }
     
+    public EmployeeDto findEmployeeById(UUID id) {
+        log.debug("[findEmployeeById] Getting employee with UUID: {}", id);
+        UUID userId = SecurityUtils.authenticatedUserId();
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
+        
+        if (!employee.getUserId().equals(userId)) {
+            throw new EntityNotFoundException("Employee not found with UUID: " + id);
+        }
+        
+        return employeeMapper.toDto(employee);
+    }
+    
     public EmployeeDto createEmployee(EmployeeDto employeeDto) {
         log.debug("[createEmployee] Creating employee with name: {} {}", employeeDto.getFirstName(), employeeDto.getLastName());
         UUID userId = SecurityUtils.authenticatedUserId();
