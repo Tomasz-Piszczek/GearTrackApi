@@ -32,13 +32,10 @@ public class MachineInspectionService {
     
     @Transactional(readOnly = true)
     public PagedResponse<MachineInspectionDto> getAllInspections(Pageable pageable) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserId(userId, pageable);
-        
+        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
-        
         return PagedResponse.of(
                 inspectionDtos,
                 inspectionPage.getNumber(),
@@ -54,21 +51,10 @@ public class MachineInspectionService {
     @Transactional(readOnly = true)
     public PagedResponse<MachineInspectionDto> getInspectionsByMachineId(UUID machineId, Pageable pageable) {
         UUID userId = SecurityUtils.authenticatedUserId();
-        
-        // Verify machine belongs to user
-        Machine machine = machineRepository.findById(machineId)
-                .orElseThrow(() -> new RuntimeException("Machine not found"));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
         Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndMachineId(userId, machineId, pageable);
-        
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
-        
         return PagedResponse.of(
                 inspectionDtos,
                 inspectionPage.getNumber(),
@@ -82,16 +68,7 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        
-        // Verify machine belongs to user
-        Machine machine = machineRepository.findById(createDto.getMachineId())
-                .orElseThrow(() -> new RuntimeException("Machine not found"));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
+        log.debug("[createInspection] Creating inspection for machine {}", createDto.getMachineId());
         MachineInspection inspection = MachineInspection.builder()
                 .machineId(createDto.getMachineId())
                 .inspectionDate(createDto.getInspectionDate())
@@ -99,72 +76,33 @@ public class MachineInspectionService {
                 .notes(createDto.getNotes())
                 .status(createDto.getStatus() != null ? createDto.getStatus() : "COMPLETED")
                 .build();
-        
-        MachineInspection savedInspection = machineInspectionRepository.save(inspection);
-        log.info("Created machine inspection for machine {} by user {}", createDto.getMachineId(), userId);
-        
-        return machineInspectionMapper.toDto(savedInspection);
+        return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
     }
     
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        
+        log.debug("[updateInspection] Updating inspection {}", inspectionId);
         MachineInspection inspection = machineInspectionRepository.findById(inspectionId)
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
-        
-        if (!inspection.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
-        // Verify machine belongs to user
-        Machine machine = machineRepository.findById(updateDto.getMachineId())
-                .orElseThrow(() -> new RuntimeException("Machine not found"));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
         inspection.setMachineId(updateDto.getMachineId());
         inspection.setInspectionDate(updateDto.getInspectionDate());
         inspection.setPerformedBy(updateDto.getPerformedBy());
         inspection.setNotes(updateDto.getNotes());
         inspection.setStatus(updateDto.getStatus() != null ? updateDto.getStatus() : inspection.getStatus());
-        
-        MachineInspection updatedInspection = machineInspectionRepository.save(inspection);
-        log.info("Updated machine inspection {} by user {}", inspectionId, userId);
-        
-        return machineInspectionMapper.toDto(updatedInspection);
+        return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
     }
     
     public void deleteInspection(UUID inspectionId) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        
+        log.debug("[deleteInspection] Deleting inspection {}", inspectionId);
         MachineInspection inspection = machineInspectionRepository.findById(inspectionId)
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
-        
-        if (!inspection.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
         machineInspectionRepository.delete(inspection);
-        log.info("Deleted machine inspection {} by user {}", inspectionId, userId);
     }
     
     @Transactional(readOnly = true)
     public List<MachineInspectionDto> getInspectionHistoryByMachineId(UUID machineId) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        
-        // Verify machine belongs to user
-        Machine machine = machineRepository.findById(machineId)
-                .orElseThrow(() -> new RuntimeException("Machine not found"));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new RuntimeException("Access denied");
-        }
-        
-        List<MachineInspection> inspections = machineInspectionRepository.findByUserIdAndMachineIdOrderByInspectionDateDesc(userId, machineId);
-        
-        return inspections.stream()
+        log.debug("[getInspectionHistoryByMachineId] Getting history for machine {}", machineId);
+        return machineInspectionRepository.findByUserIdAndMachineIdOrderByInspectionDateDesc(SecurityUtils.authenticatedUserId(), machineId)
+                .stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
     }

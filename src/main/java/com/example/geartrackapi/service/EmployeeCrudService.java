@@ -27,8 +27,7 @@ public class EmployeeCrudService {
     
     public PagedResponse<EmployeeDto> findAllEmployees(Pageable pageable) {
         log.debug("[findAllEmployees] Getting paginated employees for authenticated user");
-        UUID userId = SecurityUtils.authenticatedUserId();
-        Page<Employee> employeePage = employeeRepository.findByUserId(userId, pageable);
+        Page<Employee> employeePage = employeeRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
         
         List<EmployeeDto> employeeDtos = employeePage.getContent()
                 .stream()
@@ -47,25 +46,11 @@ public class EmployeeCrudService {
         );
     }
     
-    public List<EmployeeDto> findAllEmployeesNonPaginated() {
-        log.debug("[findAllEmployeesNonPaginated] Getting all employees for authenticated user");
-        UUID userId = SecurityUtils.authenticatedUserId();
-        return employeeRepository.findByUserId(userId)
-                .stream()
-                .map(employeeMapper::toDto)
-                .collect(Collectors.toList());
-    }
-    
     public EmployeeDto findEmployeeById(UUID id) {
         log.debug("[findEmployeeById] Getting employee with UUID: {}", id);
-        UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
-        
-        if (!employee.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Employee not found with UUID: " + id);
-        }
-        
+
         return employeeMapper.toDto(employee);
     }
     
@@ -74,34 +59,22 @@ public class EmployeeCrudService {
         UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeMapper.toEntity(employeeDto);
         employee.setUserId(userId);
-        Employee savedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toDto(savedEmployee);
+        return employeeMapper.toDto(employeeRepository.save(employee));
     }
     
     public EmployeeDto updateEmployee(EmployeeDto employeeDto) {
         log.debug("[updateEmployee] Updating employee with UUID: {}", employeeDto.getUuid());
-        UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeRepository.findById(employeeDto.getUuid())
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + employeeDto.getUuid()));
-        
-        if (!employee.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Employee not found with UUID: " + employeeDto.getUuid());
-        }
-        
+
         employeeMapper.updateEntity(employee, employeeDto);
-        Employee savedEmployee = employeeRepository.save(employee);
-        return employeeMapper.toDto(savedEmployee);
+        return employeeMapper.toDto(employeeRepository.save(employee));
     }
     
     public void deleteEmployee(UUID id) {
         log.debug("[deleteEmployee] Deleting employee with UUID: {}", id);
-        UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
-        
-        if (!employee.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Employee not found with UUID: " + id);
-        }
         
         employeeRepository.delete(employee);
     }

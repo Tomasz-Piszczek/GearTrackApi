@@ -7,9 +7,7 @@ import com.example.geartrackapi.service.EmployeeCrudService;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,29 +24,10 @@ public class EmployeeController {
     private final ToolCrudService toolCrudService;
     
     @GetMapping
-    public ResponseEntity<PagedResponse<EmployeeDto>> findAllEmployees(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "firstName") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection
-    ) {
-        log.info("[findAllEmployees] Getting all employees - page: {}, size: {}, sortBy: {}, direction: {}", 
-                page, size, sortBy, sortDirection);
-        
-        Sort sort = sortDirection.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : 
-                Sort.by(sortBy).ascending();
-        
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public ResponseEntity<PagedResponse<EmployeeDto>> findAllEmployees(Pageable pageable) {
+        log.info("[findAllEmployees] Getting all employees with pagination: {}", pageable);
         PagedResponse<EmployeeDto> employees = employeeCrudService.findAllEmployees(pageable);
-        
         return ResponseEntity.ok(employees);
-    }
-    
-    @GetMapping("/all")
-    public List<EmployeeDto> findAllEmployeesNonPaginated() {
-        log.info("[findAllEmployeesNonPaginated] Getting all employees without pagination");
-        return employeeCrudService.findAllEmployeesNonPaginated();
     }
     
     @GetMapping("/{id}")

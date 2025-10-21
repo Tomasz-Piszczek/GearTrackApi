@@ -26,24 +26,13 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
         log.info("[login] User login attempt for email: {}", loginDto.getEmail());
-        AuthResponseDto response = authService.login(loginDto);
-        if (response != null) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(authService.login(loginDto));
     }
     
     @PostMapping("/google")
     public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
         log.info("[googleLogin] Google OAuth2 login attempt");
-        
-        try {
-            AuthResponseDto authResponse = authService.handleGoogleLogin(googleTokenDto.getIdToken());
-            return ResponseEntity.ok(authResponse);
-        } catch (Exception e) {
-            log.error("[googleLogin] Google login failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(authService.handleGoogleLogin(googleTokenDto.getIdToken()));
     }
     
     public static class GoogleTokenDto {
