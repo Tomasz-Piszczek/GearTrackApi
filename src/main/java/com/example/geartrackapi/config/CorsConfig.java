@@ -16,7 +16,6 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow specific origins (localhost for development)
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000",
             "http://localhost:5173", 
@@ -24,16 +23,12 @@ public class CorsConfig {
             "http://localhost:5175"
         ));
         
-        // Allow all HTTP methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         
-        // Allow all headers
         configuration.setAllowedHeaders(List.of("*"));
         
-        // Allow credentials
         configuration.setAllowCredentials(true);
         
-        // Preflight cache duration
         configuration.setMaxAge(3600L);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

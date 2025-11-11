@@ -1,6 +1,6 @@
 package com.example.geartrackapi.controller.employee;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
+import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.employee.dto.EmployeeDto;
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.service.EmployeeCrudService;
@@ -24,10 +24,9 @@ public class EmployeeController {
     private final ToolCrudService toolCrudService;
     
     @GetMapping
-    public ResponseEntity<PagedResponse<EmployeeDto>> findAllEmployees(Pageable pageable) {
+    public ResponseEntity<Page<EmployeeDto>> findAllEmployees(Pageable pageable) {
         log.info("[findAllEmployees] Getting all employees with pagination: {}", pageable);
-        PagedResponse<EmployeeDto> employees = employeeCrudService.findAllEmployees(pageable);
-        return ResponseEntity.ok(employees);
+        return ResponseEntity.ok(employeeCrudService.findAllEmployees(pageable));
     }
     
     @GetMapping("/{id}")
@@ -54,26 +53,15 @@ public class EmployeeController {
         employeeCrudService.deleteEmployee(id);
     }
     
-    @PostMapping("/{employeeId}/assign-tool")
-    public ResponseEntity<AssignToolDto> assignToolToEmployee(
-            @PathVariable UUID employeeId,
-            @RequestBody AssignToolDto assignToolDto
-    ) {
-        log.info("[assignToolToEmployee] Assigning tool {} to employee {}", 
-                assignToolDto.getToolId(), employeeId);
-        
-        // Set the employee ID from the path variable
-        assignToolDto.setEmployeeId(employeeId);
-        
-        AssignToolDto result = toolCrudService.assignToolToEmployee(assignToolDto);
-        return ResponseEntity.ok(result);
+    @PostMapping("/assign-tool")
+    public ResponseEntity<AssignToolDto> assignToolToEmployee(@RequestBody AssignToolDto assignToolDto) {
+        log.info("[assignToolToEmployee] Assigning tool {} to employee {}", assignToolDto.getToolId(), assignToolDto.getEmployeeId());
+        return ResponseEntity.ok( toolCrudService.assignToolToEmployee(assignToolDto));
     }
     
     @GetMapping("/{employeeId}/tools")
     public ResponseEntity<List<AssignToolDto>> getEmployeeTools(@PathVariable UUID employeeId) {
         log.info("[getEmployeeTools] Getting tools for employee {}", employeeId);
-        
-        List<AssignToolDto> tools = toolCrudService.getToolsAssignedToEmployee(employeeId);
-        return ResponseEntity.ok(tools);
+        return ResponseEntity.ok(toolCrudService.getToolsAssignedToEmployee(employeeId));
     }
 }

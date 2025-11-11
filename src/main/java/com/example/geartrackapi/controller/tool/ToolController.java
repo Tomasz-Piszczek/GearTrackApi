@@ -2,13 +2,13 @@ package com.example.geartrackapi.controller.tool;
 
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
+import com.example.geartrackapi.controller.tool.dto.ToolQuantityDto;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -56,13 +56,8 @@ public class ToolController {
     }
     
     @GetMapping("/{toolId}/available-quantity")
-    public Map<String, Integer> getAvailableQuantity(@PathVariable UUID toolId) {
+    public ToolQuantityDto getAvailableQuantity(@PathVariable UUID toolId) {
         log.info("[getAvailableQuantity] Getting available quantity for tool UUID: {}", toolId);
-        int available = toolCrudService.getAvailableQuantity(toolId);
-        int assigned = toolCrudService.getTotalAssignedQuantity(toolId);
-        return Map.of(
-            "availableQuantity", available,
-            "totalAssigned", assigned
-        );
+        return toolCrudService.getToolQuantity(toolId);
     }
 }

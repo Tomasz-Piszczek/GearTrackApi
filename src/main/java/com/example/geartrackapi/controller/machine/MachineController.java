@@ -1,6 +1,6 @@
 package com.example.geartrackapi.controller.machine;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
+import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.service.MachineCrudService;
@@ -22,10 +22,9 @@ public class MachineController {
     private final MachineCrudService machineCrudService;
     
     @GetMapping
-    public ResponseEntity<PagedResponse<MachineDto>> findAllMachines(Pageable pageable) {
+    public ResponseEntity<Page<MachineDto>> findAllMachines(Pageable pageable) {
         log.info("[findAllMachines] Getting all machines with pagination: {}", pageable);
-        PagedResponse<MachineDto> machines = machineCrudService.findAllMachines(pageable);
-        return ResponseEntity.ok(machines);
+        return ResponseEntity.ok(machineCrudService.findAllMachines(pageable));
     }
 
     @PostMapping

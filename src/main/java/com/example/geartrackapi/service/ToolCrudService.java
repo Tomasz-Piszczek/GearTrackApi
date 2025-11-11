@@ -2,6 +2,7 @@ package com.example.geartrackapi.service;
 
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
+import com.example.geartrackapi.controller.tool.dto.ToolQuantityDto;
 import com.example.geartrackapi.dao.model.EmployeeTool;
 import com.example.geartrackapi.dao.model.Tool;
 import com.example.geartrackapi.dao.repository.EmployeeToolRepository;
@@ -61,9 +62,7 @@ public class ToolCrudService {
     
     public AssignToolDto assignToolToEmployee(AssignToolDto assignDto) {
         log.debug("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        Tool tool = toolRepository.findById(assignDto.getToolId())
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + assignDto.getToolId()));
-        
+
         int availableQuantity = getAvailableQuantity(assignDto.getToolId());
         if (assignDto.getQuantity() > availableQuantity) {
             throw new IllegalArgumentException(
@@ -114,5 +113,15 @@ public class ToolCrudService {
                 .stream()
                 .mapToInt(EmployeeTool::getQuantity)
                 .sum();
+    }
+    
+    public ToolQuantityDto getToolQuantity(UUID toolId) {
+        log.debug("[getToolQuantity] Getting quantity information for tool UUID: {}", toolId);
+        int available = getAvailableQuantity(toolId);
+        int assigned = getTotalAssignedQuantity(toolId);
+        return ToolQuantityDto.builder()
+                .availableQuantity(available)
+                .totalAssigned(assigned)
+                .build();
     }
 }

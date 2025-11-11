@@ -1,6 +1,5 @@
 package com.example.geartrackapi.service;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
 import com.example.geartrackapi.controller.machine.dto.CreateMachineInspectionDto;
 import com.example.geartrackapi.controller.machine.dto.MachineInspectionDto;
 import com.example.geartrackapi.dao.model.Machine;
@@ -12,6 +11,7 @@ import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,40 +31,22 @@ public class MachineInspectionService {
     private final MachineInspectionMapper machineInspectionMapper;
     
     @Transactional(readOnly = true)
-    public PagedResponse<MachineInspectionDto> getAllInspections(Pageable pageable) {
+    public Page<MachineInspectionDto> getAllInspections(Pageable pageable) {
         Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
-        return PagedResponse.of(
-                inspectionDtos,
-                inspectionPage.getNumber(),
-                inspectionPage.getSize(),
-                inspectionPage.getTotalElements(),
-                inspectionPage.getTotalPages(),
-                inspectionPage.isFirst(),
-                inspectionPage.isLast(),
-                inspectionPage.isEmpty()
-        );
+        return new PageImpl<>(inspectionDtos, pageable, inspectionPage.getTotalElements());
     }
     
     @Transactional(readOnly = true)
-    public PagedResponse<MachineInspectionDto> getInspectionsByMachineId(UUID machineId, Pageable pageable) {
+    public Page<MachineInspectionDto> getInspectionsByMachineId(UUID machineId, Pageable pageable) {
         UUID userId = SecurityUtils.authenticatedUserId();
         Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndMachineId(userId, machineId, pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
-        return PagedResponse.of(
-                inspectionDtos,
-                inspectionPage.getNumber(),
-                inspectionPage.getSize(),
-                inspectionPage.getTotalElements(),
-                inspectionPage.getTotalPages(),
-                inspectionPage.isFirst(),
-                inspectionPage.isLast(),
-                inspectionPage.isEmpty()
-        );
+        return new PageImpl<>(inspectionDtos, pageable, inspectionPage.getTotalElements());
     }
     
     public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {

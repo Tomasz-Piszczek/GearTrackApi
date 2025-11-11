@@ -1,6 +1,5 @@
 package com.example.geartrackapi.service;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
 import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.dao.model.Machine;
@@ -11,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,23 +26,14 @@ public class MachineCrudService {
     private final MachineRepository machineRepository;
     private final MachineMapper machineMapper;
     
-    public PagedResponse<MachineDto> findAllMachines(Pageable pageable) {
+    public Page<MachineDto> findAllMachines(Pageable pageable) {
         log.debug("[findAllMachines] Getting paginated machines for authenticated user");
         Page<Machine> machinePage = machineRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
         List<MachineDto> machineDtos = machinePage.getContent()
                 .stream()
                 .map(machineMapper::toDto)
                 .collect(Collectors.toList());
-        return PagedResponse.of(
-                machineDtos,
-                machinePage.getNumber(),
-                machinePage.getSize(),
-                machinePage.getTotalElements(),
-                machinePage.getTotalPages(),
-                machinePage.isFirst(),
-                machinePage.isLast(),
-                machinePage.isEmpty()
-        );
+        return new PageImpl<>(machineDtos, pageable, machinePage.getTotalElements());
     }
     
     public MachineDto createMachine(MachineDto machineDto) {

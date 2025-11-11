@@ -1,6 +1,6 @@
 package com.example.geartrackapi.controller.machine;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
+import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.machine.dto.CreateMachineInspectionDto;
 import com.example.geartrackapi.controller.machine.dto.MachineInspectionDto;
 import com.example.geartrackapi.service.MachineInspectionService;
@@ -22,18 +22,16 @@ public class MachineInspectionController {
     private final MachineInspectionService machineInspectionService;
     
     @GetMapping
-    public ResponseEntity<PagedResponse<MachineInspectionDto>> getAllInspections(Pageable pageable) {
+    public ResponseEntity<Page<MachineInspectionDto>> getAllInspections(Pageable pageable) {
         log.info("Getting all machine inspections with pagination: {}", pageable);
-        PagedResponse<MachineInspectionDto> inspections = machineInspectionService.getAllInspections(pageable);
-        return ResponseEntity.ok(inspections);
+        return ResponseEntity.ok(machineInspectionService.getAllInspections(pageable));
     }
     
     @GetMapping("/machine/{machineId}")
-    public ResponseEntity<PagedResponse<MachineInspectionDto>> getInspectionsByMachineId(
+    public ResponseEntity<Page<MachineInspectionDto>> getInspectionsByMachineId(
             @PathVariable UUID machineId, Pageable pageable) {
         log.info("Getting inspections for machine {} with pagination: {}", machineId, pageable);
-        PagedResponse<MachineInspectionDto> inspections = machineInspectionService.getInspectionsByMachineId(machineId, pageable);
-        return ResponseEntity.ok(inspections);
+        return ResponseEntity.ok(machineInspectionService.getInspectionsByMachineId(machineId, pageable));
     }
     
     @GetMapping("/machine/{machineId}/history")
