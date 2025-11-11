@@ -12,7 +12,7 @@ public class ToolDto {
     private UUID uuid;
     private String name;
     private String factoryNumber;
-    private String size;
     private Integer quantity;
     private BigDecimal value;
+    private Integer availableQuantity;
 }

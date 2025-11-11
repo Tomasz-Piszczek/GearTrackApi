@@ -12,9 +12,19 @@ public class ToolMapper {
                 .uuid(tool.getId())
                 .name(tool.getName())
                 .factoryNumber(tool.getFactoryNumber())
-                .size(tool.getSize())
                 .quantity(tool.getQuantity())
                 .value(tool.getValue())
+                .build();
+    }
+    
+    public ToolDto toDto(Tool tool, Integer availableQuantity) {
+        return ToolDto.builder()
+                .uuid(tool.getId())
+                .name(tool.getName())
+                .factoryNumber(tool.getFactoryNumber())
+                .quantity(tool.getQuantity())
+                .value(tool.getValue())
+                .availableQuantity(availableQuantity)
                 .build();
     }
     
@@ -22,7 +32,6 @@ public class ToolMapper {
         Tool tool = new Tool();
         tool.setName(dto.getName());
         tool.setFactoryNumber(dto.getFactoryNumber());
-        tool.setSize(dto.getSize());
         tool.setQuantity(dto.getQuantity());
         tool.setValue(dto.getValue());
         return tool;
@@ -31,7 +40,6 @@ public class ToolMapper {
     public void updateEntity(Tool tool, ToolDto dto) {
         tool.setName(dto.getName());
         tool.setFactoryNumber(dto.getFactoryNumber());
-        tool.setSize(dto.getSize());
         tool.setQuantity(dto.getQuantity());
         tool.setValue(dto.getValue());
     }

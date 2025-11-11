@@ -2,7 +2,6 @@ package com.example.geartrackapi.service;
 
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
-import com.example.geartrackapi.controller.tool.dto.ToolQuantityDto;
 import com.example.geartrackapi.dao.model.EmployeeTool;
 import com.example.geartrackapi.dao.model.Tool;
 import com.example.geartrackapi.dao.repository.EmployeeToolRepository;
@@ -32,9 +31,12 @@ public class ToolCrudService {
     
     public List<ToolDto> findAllTools() {
         log.debug("[findAllTools] Getting all tools for authenticated user");
-        return toolRepository.findByUserId(SecurityUtils.authenticatedUserId())
+        UUID userId = SecurityUtils.authenticatedUserId();
+        return toolRepository.findByUserId(userId)
                 .stream()
-                .map(toolMapper::toDto)
+                .map(tool -> {
+                    return toolMapper.toDto(tool, employeeToolRepository.getAvailableQuantityByUserIdAndToolId(userId, tool.getId()));
+                })
                 .collect(Collectors.toList());
     }
     
@@ -63,7 +65,13 @@ public class ToolCrudService {
     public AssignToolDto assignToolToEmployee(AssignToolDto assignDto) {
         log.debug("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
 
-        int availableQuantity = getAvailableQuantity(assignDto.getToolId());
+        UUID userId = SecurityUtils.authenticatedUserId();
+        Tool tool = toolRepository.findById(assignDto.getToolId())
+                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + assignDto.getToolId()));
+        
+        Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByUserIdAndToolId(userId, assignDto.getToolId());
+        int availableQuantity = Math.max(0, tool.getQuantity() - totalAssigned);
+        
         if (assignDto.getQuantity() > availableQuantity) {
             throw new IllegalArgumentException(
                 String.format("Insufficient quantity. Available: %d, Requested: %d", 
@@ -96,32 +104,5 @@ public class ToolCrudService {
                 .collect(Collectors.toList());
     }
     
-    public int getAvailableQuantity(UUID toolId) {
-        log.debug("[getAvailableQuantity] Calculating available quantity for tool UUID: {}", toolId);
-        Tool tool = toolRepository.findById(toolId)
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolId));
-        int totalAssigned = employeeToolRepository.findByUserIdAndToolId(SecurityUtils.authenticatedUserId(), toolId)
-                .stream()
-                .mapToInt(EmployeeTool::getQuantity)
-                .sum();
-        return Math.max(0, tool.getQuantity() - totalAssigned);
-    }
     
-    public int getTotalAssignedQuantity(UUID toolId) {
-        log.debug("[getTotalAssignedQuantity] Calculating total assigned quantity for tool UUID: {}", toolId);
-        return employeeToolRepository.findByUserIdAndToolId(SecurityUtils.authenticatedUserId(), toolId)
-                .stream()
-                .mapToInt(EmployeeTool::getQuantity)
-                .sum();
-    }
-    
-    public ToolQuantityDto getToolQuantity(UUID toolId) {
-        log.debug("[getToolQuantity] Getting quantity information for tool UUID: {}", toolId);
-        int available = getAvailableQuantity(toolId);
-        int assigned = getTotalAssignedQuantity(toolId);
-        return ToolQuantityDto.builder()
-                .availableQuantity(available)
-                .totalAssigned(assigned)
-                .build();
-    }
 }

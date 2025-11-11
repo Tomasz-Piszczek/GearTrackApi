@@ -2,7 +2,6 @@ package com.example.geartrackapi.controller.tool;
 
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
-import com.example.geartrackapi.controller.tool.dto.ToolQuantityDto;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +54,4 @@ public class ToolController {
         toolCrudService.unassignToolFromEmployee(assignDto);
     }
     
-    @GetMapping("/{toolId}/available-quantity")
-    public ToolQuantityDto getAvailableQuantity(@PathVariable UUID toolId) {
-        log.info("[getAvailableQuantity] Getting available quantity for tool UUID: {}", toolId);
-        return toolCrudService.getToolQuantity(toolId);
-    }
 }
