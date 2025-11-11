@@ -54,9 +54,8 @@ public class MachineInspectionService {
         MachineInspection inspection = MachineInspection.builder()
                 .machineId(createDto.getMachineId())
                 .inspectionDate(createDto.getInspectionDate())
-                .performedBy(createDto.getPerformedBy())
                 .notes(createDto.getNotes())
-                .status(createDto.getStatus() != null ? createDto.getStatus() : "COMPLETED")
+                .status(createDto.getStatus() != null ? createDto.getStatus() : "SCHEDULED")
                 .build();
         return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
     }
@@ -67,7 +66,6 @@ public class MachineInspectionService {
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         inspection.setMachineId(updateDto.getMachineId());
         inspection.setInspectionDate(updateDto.getInspectionDate());
-        inspection.setPerformedBy(updateDto.getPerformedBy());
         inspection.setNotes(updateDto.getNotes());
         inspection.setStatus(updateDto.getStatus() != null ? updateDto.getStatus() : inspection.getStatus());
         return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));

@@ -25,9 +25,16 @@ public class EmployeeCrudService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeMapper employeeMapper;
     
-    public Page<EmployeeDto> findAllEmployees(Pageable pageable) {
-        log.debug("[findAllEmployees] Getting paginated employees for authenticated user");
-        Page<Employee> employeePage = employeeRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
+    public Page<EmployeeDto> findAllEmployees(String search, Pageable pageable) {
+        log.debug("[findAllEmployees] Getting paginated employees for authenticated user with search: {}", search);
+        UUID userId = SecurityUtils.authenticatedUserId();
+        Page<Employee> employeePage;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            employeePage = employeeRepository.findByUserIdAndNameContaining(userId, search.trim(), pageable);
+        } else {
+            employeePage = employeeRepository.findByUserId(userId, pageable);
+        }
         
         List<EmployeeDto> employeeDtos = employeePage.getContent()
                 .stream()

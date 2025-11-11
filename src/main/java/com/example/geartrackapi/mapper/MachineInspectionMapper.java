@@ -25,7 +25,6 @@ public class MachineInspectionMapper {
                 .machineName(machine.getName())
                 .machineFactoryNumber(machine.getFactoryNumber())
                 .inspectionDate(inspection.getInspectionDate())
-                .performedBy(inspection.getPerformedBy())
                 .notes(inspection.getNotes())
                 .status(inspection.getStatus())
                 .createdAt(inspection.getCreatedAt().toLocalDate())

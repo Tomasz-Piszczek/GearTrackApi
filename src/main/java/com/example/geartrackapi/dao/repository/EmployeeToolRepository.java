@@ -11,7 +11,11 @@ import java.util.UUID;
 
 @Repository
 public interface EmployeeToolRepository extends JpaRepository<EmployeeTool, UUID> {
-    List<EmployeeTool> findByUserIdAndEmployeeId(UUID userId, UUID employeeId);
+    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.userId = :userId AND et.employeeId = :employeeId")
+    List<EmployeeTool> findByUserIdAndEmployeeId(@Param("userId") UUID userId, @Param("employeeId") UUID employeeId);
+    
+    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.userId = :userId AND et.toolId = :toolId")
+    List<EmployeeTool> findByUserIdAndToolId(@Param("userId") UUID userId, @Param("toolId") UUID toolId);
 
     @Query("SELECT COALESCE(SUM(et.quantity), 0) FROM EmployeeTool et WHERE et.userId = :userId AND et.toolId = :toolId")
     Integer getTotalAssignedQuantityByUserIdAndToolId(@Param("userId") UUID userId, @Param("toolId") UUID toolId);

@@ -24,9 +24,11 @@ public class EmployeeController {
     private final ToolCrudService toolCrudService;
     
     @GetMapping
-    public ResponseEntity<Page<EmployeeDto>> findAllEmployees(Pageable pageable) {
-        log.info("[findAllEmployees] Getting all employees with pagination: {}", pageable);
-        return ResponseEntity.ok(employeeCrudService.findAllEmployees(pageable));
+    public ResponseEntity<Page<EmployeeDto>> findAllEmployees(
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        log.info("[findAllEmployees] Getting all employees with pagination: {} and search: {}", pageable, search);
+        return ResponseEntity.ok(employeeCrudService.findAllEmployees(search, pageable));
     }
     
     @GetMapping("/{id}")

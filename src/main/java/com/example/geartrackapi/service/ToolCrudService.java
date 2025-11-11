@@ -122,5 +122,13 @@ public class ToolCrudService {
                 .collect(Collectors.toList());
     }
     
+    public List<AssignToolDto> getEmployeesAssignedToTool(UUID toolId) {
+        log.debug("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
+        return employeeToolRepository.findByUserIdAndToolId(SecurityUtils.authenticatedUserId(), toolId)
+                .stream()
+                .map(employeeToolMapper::toAssignToolDto)
+                .collect(Collectors.toList());
+    }
+    
     
 }

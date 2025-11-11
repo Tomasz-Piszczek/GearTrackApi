@@ -17,8 +17,6 @@ public class CreateMachineInspectionDto {
     
     private LocalDate inspectionDate;
     
-    private String performedBy;
-    
     private String notes;
     
     private String status;

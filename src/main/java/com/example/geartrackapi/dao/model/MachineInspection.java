@@ -22,9 +22,6 @@ public class MachineInspection extends BaseEntity {
     @Column(name = "inspection_date", nullable = false)
     private LocalDate inspectionDate;
     
-    @Column(name = "performed_by", nullable = false)
-    private String performedBy;
-    
     @Column(name = "machine_id", nullable = false)
     private UUID machineId;
     

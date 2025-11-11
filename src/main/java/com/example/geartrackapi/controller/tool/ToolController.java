@@ -54,4 +54,10 @@ public class ToolController {
         toolCrudService.unassignToolFromEmployee(assignDto);
     }
     
+    @GetMapping("/{toolId}/employees")
+    public List<AssignToolDto> getEmployeesAssignedToTool(@PathVariable UUID toolId) {
+        log.info("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
+        return toolCrudService.getEmployeesAssignedToTool(toolId);
+    }
+    
 }

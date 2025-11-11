@@ -18,7 +18,6 @@ public class MachineInspectionDto {
     private String machineName;
     private String machineFactoryNumber;
     private LocalDate inspectionDate;
-    private String performedBy;
     private String notes;
     private String status;
     private LocalDate createdAt;
