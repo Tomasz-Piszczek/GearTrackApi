@@ -85,15 +85,33 @@ public class ToolCrudService {
     }
     
     public void unassignToolFromEmployee(AssignToolDto assignDto) {
-        log.debug("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        List<EmployeeTool> employeeTools = employeeToolRepository.findByUserIdAndEmployeeId(SecurityUtils.authenticatedUserId(), assignDto.getEmployeeId())
+        log.debug("[unassignToolFromEmployee] Unassigning {} quantity of tool UUID: {} with condition '{}' from employee UUID: {}", 
+                  assignDto.getQuantity(), assignDto.getToolId(), assignDto.getCondition(), assignDto.getEmployeeId());
+        
+        UUID userId = SecurityUtils.authenticatedUserId();
+        List<EmployeeTool> matchingAssignments = employeeToolRepository.findByUserIdAndEmployeeId(userId, assignDto.getEmployeeId())
                 .stream()
-                .filter(et -> et.getToolId().equals(assignDto.getToolId()))
+                .filter(et -> et.getToolId().equals(assignDto.getToolId()) && 
+                             et.getCondition().equals(assignDto.getCondition()))
                 .collect(Collectors.toList());
-        if (employeeTools.isEmpty()) {
-            throw new EntityNotFoundException("No tool assignment found");
+        
+
+        
+        EmployeeTool assignmentToModify = matchingAssignments.stream()
+                .filter(et -> et.getQuantity() >= assignDto.getQuantity())
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Insufficient quantity to remove. Requested: " + assignDto.getQuantity()));
+        
+        if (assignmentToModify.getQuantity().equals(assignDto.getQuantity())) {
+            // Remove the entire assignment if quantities match
+            employeeToolRepository.delete(assignmentToModify);
+            log.debug("[unassignToolFromEmployee] Deleted assignment with ID: {}", assignmentToModify.getId());
+        } else {
+            // Reduce the quantity
+            assignmentToModify.setQuantity(assignmentToModify.getQuantity() - assignDto.getQuantity());
+            employeeToolRepository.save(assignmentToModify);
+            log.debug("[unassignToolFromEmployee] Reduced assignment quantity to: {}", assignmentToModify.getQuantity());
         }
-        employeeToolRepository.deleteAll(employeeTools);
     }
     
     public List<AssignToolDto> getToolsAssignedToEmployee(UUID employeeId) {
