@@ -103,7 +103,7 @@ jobs:
           docker run -d \
             --name geartrack-backend \
             --restart unless-stopped \
-            --network host \
+            -p 8080:8080 \
             --env-file /home/ec2-user/apps/backend/.env \
             geartrack-backend:latest
           
