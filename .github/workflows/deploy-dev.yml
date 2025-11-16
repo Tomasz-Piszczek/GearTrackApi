@@ -109,8 +109,23 @@ jobs:
           echo "Waiting for application to start..."
           sleep 10
           
-          echo "Health check..."
-          curl -f http://localhost:8080/actuator/health || exit 1
+          echo "Health check attempt 1..."
+          if ! curl -f http://localhost:8080/actuator/health; then
+            echo "First health check failed, waiting 20 more seconds..."
+            sleep 20
+            echo "Health check attempt 2..."
+            if ! curl -f http://localhost:8080/actuator/health; then
+              echo "Second health check failed, waiting 20 more seconds..."
+              sleep 20
+              echo "Health check attempt 3..."
+              if ! curl -f http://localhost:8080/actuator/health; then
+                echo "Third health check failed, waiting 20 more seconds..."
+                sleep 20
+                echo "Health check attempt 4 (final)..."
+                curl -f http://localhost:8080/actuator/health || exit 1
+              fi
+            fi
+          fi
           
           echo "Cleaning up old images..."
           docker image prune -f
