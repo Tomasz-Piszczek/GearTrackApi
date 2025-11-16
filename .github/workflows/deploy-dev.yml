@@ -10,21 +10,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: geartrack
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: testpassword
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - uses: actions/checkout@v4
 
@@ -38,13 +23,6 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run tests
-        env:
-          TEST_DB_HOST: localhost
-          TEST_DB_PORT: 5432
-          TEST_DB_NAME: geartrack
-          TEST_DB_USER: postgres
-          TEST_DB_PASSWORD: testpassword
-          TEST_JWT_SECRET: testSecretKeyForJWTTokensThatShouldBeAtLeast32Characters
         run: ./gradlew test
 
       - name: Upload test results
@@ -102,7 +80,7 @@ jobs:
           docker run -d \
             --name geartrack-backend \
             --restart unless-stopped \
-            -p 8080:8080 \
+            --network host \
             --env-file /home/ec2-user/apps/backend/.env \
             geartrack-backend:latest
           
