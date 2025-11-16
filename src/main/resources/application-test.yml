@@ -20,6 +20,8 @@ app:
   jwt:
     secret: ${TEST_JWT_SECRET:testSecretKeyForJWTTokensThatShouldBeAtLeast32Characters}
     expiration: 86400000
+  google:
+    client-id: ${TEST_GOOGLE_CLIENT_ID:445794691525-hs55893o7q75k1ci3h6k27mkm2vciksb.apps.googleusercontent.com}
 
 logging:
   level:
