@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${TEST_DB_HOST:localhost}:${TEST_DB_PORT:5435}/${TEST_DB_NAME:geartrack}
+    username: ${TEST_DB_USER:postgres}
+    password: ${TEST_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: ${TEST_JWT_SECRET:testSecretKeyForJWTTokensThatShouldBeAtLeast32Characters}
+    expiration: 86400000
+
+logging:
+  level:
+    com.example.geartrackapi: DEBUG
+    org.springframework.security: WARN
