@@ -9,12 +9,15 @@ public class EmployeeToolMapper {
     
     public AssignToolDto toAssignToolDto(EmployeeTool employeeTool) {
         return AssignToolDto.builder()
-                .uuid(employeeTool.getUuid())
+                .uuid(employeeTool.getId())
                 .employeeId(employeeTool.getEmployeeId())
                 .toolId(employeeTool.getToolId())
                 .quantity(employeeTool.getQuantity())
                 .condition(employeeTool.getCondition())
                 .assignedAt(employeeTool.getAssignedAt())
+                .employeeName(employeeTool.getEmployee() != null ? 
+                    employeeTool.getEmployee().getFirstName() + " " + employeeTool.getEmployee().getLastName() : null)
+                .toolName(employeeTool.getTool() != null ? employeeTool.getTool().getName() : null)
                 .build();
     }
     

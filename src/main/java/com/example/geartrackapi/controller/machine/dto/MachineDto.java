@@ -3,6 +3,7 @@ package com.example.geartrackapi.controller.machine.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -13,4 +14,7 @@ public class MachineDto {
     private String factoryNumber;
     private UUID employeeId;
     private String employeeName;
+    private LocalDate nextInspectionDate;
+    private LocalDate lastInspectionDate;
+    private long totalInspections;
 }

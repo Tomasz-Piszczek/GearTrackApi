@@ -9,6 +9,9 @@ import com.example.geartrackapi.security.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,64 +26,43 @@ public class MachineCrudService {
     private final MachineRepository machineRepository;
     private final MachineMapper machineMapper;
     
-    public List<MachineDto> findAllMachines() {
-        log.debug("[findAllMachines] Getting all machines for authenticated user");
-        UUID userId = SecurityUtils.authenticatedUserId();
-        return machineRepository.findByUserId(userId)
+    public Page<MachineDto> findAllMachines(Pageable pageable) {
+        log.debug("[findAllMachines] Getting paginated machines for authenticated user");
+        Page<Machine> machinePage = machineRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
+        List<MachineDto> machineDtos = machinePage.getContent()
                 .stream()
                 .map(machineMapper::toDto)
                 .collect(Collectors.toList());
+        return new PageImpl<>(machineDtos, pageable, machinePage.getTotalElements());
     }
     
     public MachineDto createMachine(MachineDto machineDto) {
         log.debug("[createMachine] Creating machine with name: {}", machineDto.getName());
-        UUID userId = SecurityUtils.authenticatedUserId();
         Machine machine = machineMapper.toEntity(machineDto);
-        machine.setUserId(userId);
-        Machine savedMachine = machineRepository.save(machine);
-        return machineMapper.toDto(savedMachine);
+        machine.setUserId(SecurityUtils.authenticatedUserId());
+        return machineMapper.toDto(machineRepository.save(machine));
     }
     
     public MachineDto updateMachine(MachineDto machineDto) {
         log.debug("[updateMachine] Updating machine with UUID: {}", machineDto.getUuid());
-        UUID userId = SecurityUtils.authenticatedUserId();
         Machine machine = machineRepository.findById(machineDto.getUuid())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineDto.getUuid()));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Machine not found with UUID: " + machineDto.getUuid());
-        }
-        
         machineMapper.updateEntity(machine, machineDto);
-        Machine savedMachine = machineRepository.save(machine);
-        return machineMapper.toDto(savedMachine);
+        return machineMapper.toDto(machineRepository.save(machine));
     }
     
     public void deleteMachine(UUID id) {
         log.debug("[deleteMachine] Deleting machine with UUID: {}", id);
-        UUID userId = SecurityUtils.authenticatedUserId();
         Machine machine = machineRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + id));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Machine not found with UUID: " + id);
-        }
-        
         machineRepository.delete(machine);
     }
     
     public MachineDto assignMachineToEmployee(AssignMachineDto assignDto) {
         log.debug("[assignMachineToEmployee] Assigning machine UUID: {} to employee UUID: {}", assignDto.getMachineId(), assignDto.getEmployeeId());
-        UUID userId = SecurityUtils.authenticatedUserId();
         Machine machine = machineRepository.findById(assignDto.getMachineId())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + assignDto.getMachineId()));
-        
-        if (!machine.getUserId().equals(userId)) {
-            throw new EntityNotFoundException("Machine not found with UUID: " + assignDto.getMachineId());
-        }
-        
         machine.setEmployeeId(assignDto.getEmployeeId());
-        Machine savedMachine = machineRepository.save(machine);
-        return machineMapper.toDto(savedMachine);
+        return machineMapper.toDto(machineRepository.save(machine));
     }
 }

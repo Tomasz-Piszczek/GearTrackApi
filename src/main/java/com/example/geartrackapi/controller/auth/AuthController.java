@@ -7,7 +7,6 @@ import com.example.geartrackapi.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -27,17 +26,24 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
         log.info("[login] User login attempt for email: {}", loginDto.getEmail());
-        AuthResponseDto response = authService.login(loginDto);
-        if (response != null) {
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(authService.login(loginDto));
     }
     
-    @GetMapping("/oauth2/success")
-    public ResponseEntity<AuthResponseDto> oauth2Success(OAuth2AuthenticationToken authentication) {
-        String email = authentication.getPrincipal().getAttribute("email");
-        log.info("[oauth2Success] OAuth2 login success for email: {}", email);
-        return ResponseEntity.ok(authService.handleOAuth2Success(email));
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
+        log.info("[googleLogin] Google OAuth2 login attempt");
+        return ResponseEntity.ok(authService.handleGoogleLogin(googleTokenDto.getIdToken()));
+    }
+    
+    public static class GoogleTokenDto {
+        private String idToken;
+        
+        public String getIdToken() {
+            return idToken;
+        }
+        
+        public void setIdToken(String idToken) {
+            this.idToken = idToken;
+        }
     }
 }

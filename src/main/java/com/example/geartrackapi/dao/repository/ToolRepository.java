@@ -10,7 +10,4 @@ import java.util.UUID;
 @Repository
 public interface ToolRepository extends JpaRepository<Tool, UUID> {
     List<Tool> findByUserId(UUID userId);
-    List<Tool> findByUserIdAndNameContainingIgnoreCase(UUID userId, String name);
-    List<Tool> findByUserIdAndFactoryNumber(UUID userId, String factoryNumber);
-    List<Tool> findByUserIdAndSize(UUID userId, String size);
 }

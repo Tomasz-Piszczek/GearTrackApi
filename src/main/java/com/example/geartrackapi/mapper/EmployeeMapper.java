@@ -9,7 +9,7 @@ public class EmployeeMapper {
     
     public EmployeeDto toDto(Employee employee) {
         return EmployeeDto.builder()
-                .uuid(employee.getUuid())
+                .uuid(employee.getId())
                 .firstName(employee.getFirstName())
                 .lastName(employee.getLastName())
                 .hourlyRate(employee.getHourlyRate())

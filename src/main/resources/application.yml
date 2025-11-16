@@ -1,59 +1,22 @@
 spring:
-  application:
-    name: GearTrackApi
-    
   datasource:
-    url: jdbc:postgresql://localhost:5432/geartrack
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-    
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:geartrack_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: false
-    
+
   flyway:
     enabled: true
-    locations: classpath:db/migration
     baseline-on-migrate: true
-    
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
-            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
-            scope:
-              - email
-              - profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v2/userinfo
-            user-name-attribute: email
 
-app:
-  jwt:
-    secret: ${JWT_SECRET:myVerySecretKeyForJWTTokensThatShouldBeAtLeast32Characters}
-    expiration: 86400000
+jwt:
+  secret: ${JWT_SECRET}
 
-logging:
-  level:
-    com.example.geartrackapi: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
-server:
-  port: 8080
+google:
+  client-id: ${GOOGLE_CLIENT_ID}

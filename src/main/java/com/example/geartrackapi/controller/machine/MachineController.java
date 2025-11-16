@@ -1,10 +1,13 @@
 package com.example.geartrackapi.controller.machine;
 
+import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.service.MachineCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,11 +22,11 @@ public class MachineController {
     private final MachineCrudService machineCrudService;
     
     @GetMapping
-    public List<MachineDto> findAllMachines() {
-        log.info("[findAllMachines] Getting all machines");
-        return machineCrudService.findAllMachines();
+    public ResponseEntity<Page<MachineDto>> findAllMachines(Pageable pageable) {
+        log.info("[findAllMachines] Getting all machines with pagination: {}", pageable);
+        return ResponseEntity.ok(machineCrudService.findAllMachines(pageable));
     }
-    
+
     @PostMapping
     public MachineDto createMachine(@RequestBody MachineDto machineDto) {
         log.info("[createMachine] Creating machine with name: {}", machineDto.getName());

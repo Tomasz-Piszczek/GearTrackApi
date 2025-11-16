@@ -19,9 +19,6 @@ public class Tool extends BaseEntity {
     @Column(name = "factory_number")
     private String factoryNumber;
     
-    @Column(name = "size")
-    private String size;
-    
     @Column(name = "quantity")
     private Integer quantity;
     
