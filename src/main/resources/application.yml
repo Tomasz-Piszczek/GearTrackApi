@@ -15,11 +15,11 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
-jwt:
-  secret: ${JWT_SECRET}
-
-google:
-  client-id: ${GOOGLE_CLIENT_ID}
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
 logging:
   level:
     com.example.geartrackapi: INFO
