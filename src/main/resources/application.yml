@@ -103,5 +103,4 @@ jobs:
           # Execute deployment
           ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@$EC2_HOST "chmod +x deploy.sh && ./deploy.sh"
           
-          # Cleanup
           rm ec2-key.pem
