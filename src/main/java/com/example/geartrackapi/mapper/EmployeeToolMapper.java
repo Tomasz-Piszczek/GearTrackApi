@@ -15,6 +15,9 @@ public class EmployeeToolMapper {
                 .quantity(employeeTool.getQuantity())
                 .condition(employeeTool.getCondition())
                 .assignedAt(employeeTool.getAssignedAt())
+                .employeeName(employeeTool.getEmployee() != null ? 
+                    employeeTool.getEmployee().getFirstName() + " " + employeeTool.getEmployee().getLastName() : null)
+                .toolName(employeeTool.getTool() != null ? employeeTool.getTool().getName() : null)
                 .build();
     }
     

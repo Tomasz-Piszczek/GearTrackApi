@@ -15,4 +15,6 @@ public class AssignToolDto {
     private Integer quantity;
     private String condition;
     private LocalDate assignedAt;
+    private String employeeName;
+    private String toolName;
 }

@@ -1,14 +1,12 @@
 package com.example.geartrackapi.controller.machine;
 
-import com.example.geartrackapi.controller.common.dto.PagedResponse;
+import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.service.MachineCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,31 +22,11 @@ public class MachineController {
     private final MachineCrudService machineCrudService;
     
     @GetMapping
-    public ResponseEntity<PagedResponse<MachineDto>> findAllMachines(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDirection
-    ) {
-        log.info("[findAllMachines] Getting all machines - page: {}, size: {}, sortBy: {}, direction: {}", 
-                page, size, sortBy, sortDirection);
-        
-        Sort sort = sortDirection.equalsIgnoreCase("desc") ? 
-                Sort.by(sortBy).descending() : 
-                Sort.by(sortBy).ascending();
-        
-        Pageable pageable = PageRequest.of(page, size, sort);
-        PagedResponse<MachineDto> machines = machineCrudService.findAllMachines(pageable);
-        
-        return ResponseEntity.ok(machines);
+    public ResponseEntity<Page<MachineDto>> findAllMachines(Pageable pageable) {
+        log.info("[findAllMachines] Getting all machines with pagination: {}", pageable);
+        return ResponseEntity.ok(machineCrudService.findAllMachines(pageable));
     }
-    
-    @GetMapping("/all")
-    public List<MachineDto> findAllMachinesNonPaginated() {
-        log.info("[findAllMachinesNonPaginated] Getting all machines without pagination");
-        return machineCrudService.findAllMachinesNonPaginated();
-    }
-    
+
     @PostMapping
     public MachineDto createMachine(@RequestBody MachineDto machineDto) {
         log.info("[createMachine] Creating machine with name: {}", machineDto.getName());

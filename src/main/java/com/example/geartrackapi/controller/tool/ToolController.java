@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -55,14 +54,10 @@ public class ToolController {
         toolCrudService.unassignToolFromEmployee(assignDto);
     }
     
-    @GetMapping("/{toolId}/available-quantity")
-    public Map<String, Integer> getAvailableQuantity(@PathVariable UUID toolId) {
-        log.info("[getAvailableQuantity] Getting available quantity for tool UUID: {}", toolId);
-        int available = toolCrudService.getAvailableQuantity(toolId);
-        int assigned = toolCrudService.getTotalAssignedQuantity(toolId);
-        return Map.of(
-            "availableQuantity", available,
-            "totalAssigned", assigned
-        );
+    @GetMapping("/{toolId}/employees")
+    public List<AssignToolDto> getEmployeesAssignedToTool(@PathVariable UUID toolId) {
+        log.info("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
+        return toolCrudService.getEmployeesAssignedToTool(toolId);
     }
+    
 }

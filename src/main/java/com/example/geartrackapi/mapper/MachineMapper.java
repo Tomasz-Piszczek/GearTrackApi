@@ -23,7 +23,6 @@ public class MachineMapper {
             employeeName = machine.getEmployee().getFirstName() + " " + machine.getEmployee().getLastName();
         }
         
-        // Get inspection data
         LocalDate nextInspectionDate = null;
         LocalDate lastInspectionDate = null;
         long totalInspections = 0;
