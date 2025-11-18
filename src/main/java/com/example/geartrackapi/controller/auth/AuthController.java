@@ -4,7 +4,9 @@ import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
 import com.example.geartrackapi.controller.auth.dto.LoginDto;
 import com.example.geartrackapi.controller.auth.dto.RegisterDto;
 import com.example.geartrackapi.service.AuthService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,15 +37,11 @@ public class AuthController {
         return ResponseEntity.ok(authService.handleGoogleLogin(googleTokenDto.getIdToken()));
     }
     
+    @Getter
+    @Setter
     public static class GoogleTokenDto {
         private String idToken;
-        
-        public String getIdToken() {
-            return idToken;
-        }
-        
-        public void setIdToken(String idToken) {
-            this.idToken = idToken;
-        }
+
+
     }
 }
