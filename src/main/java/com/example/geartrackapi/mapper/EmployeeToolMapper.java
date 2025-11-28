@@ -18,6 +18,8 @@ public class EmployeeToolMapper {
                 .employeeName(employeeTool.getEmployee() != null ? 
                     employeeTool.getEmployee().getFirstName() + " " + employeeTool.getEmployee().getLastName() : null)
                 .toolName(employeeTool.getTool() != null ? employeeTool.getTool().getName() : null)
+                .toolPrice(employeeTool.getTool() != null ? employeeTool.getTool().getValue() : null)
+                .toolFactoryNumber(employeeTool.getTool() != null ? employeeTool.getTool().getFactoryNumber() : null)
                 .build();
     }
     
