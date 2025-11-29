@@ -27,4 +27,7 @@ public class Employee extends BaseEntity {
     
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EmployeeTool> employeeTools;
+    
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PayrollRecord> payrollRecords;
 }
