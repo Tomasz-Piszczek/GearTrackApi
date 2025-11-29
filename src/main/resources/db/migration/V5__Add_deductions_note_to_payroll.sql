@@ -1,0 +1,1 @@
+ALTER TABLE payroll_records ADD COLUMN deductions_note TEXT;
