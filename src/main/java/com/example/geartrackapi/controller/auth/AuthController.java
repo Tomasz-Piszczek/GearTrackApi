@@ -37,11 +37,21 @@ public class AuthController {
         return ResponseEntity.ok(authService.handleGoogleLogin(googleTokenDto.getIdToken()));
     }
     
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
+        log.info("[refreshToken] Token refresh attempt");
+        return ResponseEntity.ok(authService.refreshToken(refreshTokenDto.getRefreshToken()));
+    }
+    
     @Getter
     @Setter
     public static class GoogleTokenDto {
         private String idToken;
-
-
+    }
+    
+    @Getter
+    @Setter
+    public static class RefreshTokenDto {
+        private String refreshToken;
     }
 }

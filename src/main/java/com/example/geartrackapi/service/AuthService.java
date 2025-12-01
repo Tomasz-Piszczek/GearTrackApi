@@ -43,9 +43,11 @@ public class AuthService {
         
         User savedUser = userRepository.save(user);
         String token = jwtUtils.generateToken(savedUser.getEmail(), savedUser.getId());
+        String refreshToken = jwtUtils.generateRefreshToken(savedUser.getEmail(), savedUser.getId());
 
         return AuthResponseDto.builder()
                 .token(token)
+                .refreshToken(refreshToken)
                 .email(savedUser.getEmail())
                 .userId(savedUser.getId())
                 .build();
@@ -57,9 +59,11 @@ public class AuthService {
         
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPasswordHash())) {
             String token = jwtUtils.generateToken(user.getEmail(), user.getId());
+            String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId());
 
             return AuthResponseDto.builder()
                     .token(token)
+                    .refreshToken(refreshToken)
                     .email(user.getEmail())
                     .userId(user.getId())
                     .build();
@@ -104,9 +108,11 @@ public class AuthService {
                 }
                 
                 String token = jwtUtils.generateToken(user.getEmail(), user.getId());
+                String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId());
 
                 return AuthResponseDto.builder()
                         .token(token)
+                        .refreshToken(refreshToken)
                         .email(user.getEmail())
                         .userId(user.getId())
                         .build();
@@ -117,5 +123,31 @@ public class AuthService {
             log.error("[handleGoogleLogin] Error verifying Google token: {}", e.getMessage());
             throw new RuntimeException("Invalid Google ID token", e);
         }
+    }
+    
+    public AuthResponseDto refreshToken(String refreshToken) {
+        log.debug("[refreshToken] Refreshing token");
+        
+        if (!jwtUtils.validateToken(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+        
+        String email = jwtUtils.getUsernameFromToken(refreshToken);
+        UUID userId = jwtUtils.getUserIdFromToken(refreshToken);
+        
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        
+        String newToken = jwtUtils.generateToken(email, userId);
+        String newRefreshToken = jwtUtils.generateRefreshToken(email, userId);
+        
+        return AuthResponseDto.builder()
+                .token(newToken)
+                .refreshToken(newRefreshToken)
+                .email(email)
+                .userId(userId)
+                .build();
     }
 }
