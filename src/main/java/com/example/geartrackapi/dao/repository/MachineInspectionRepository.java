@@ -16,22 +16,23 @@ import java.util.UUID;
 @Repository
 public interface MachineInspectionRepository extends JpaRepository<MachineInspection, UUID> {
     
-    Page<MachineInspection> findByUserId(UUID userId, Pageable pageable);
+    Optional<MachineInspection> findByIdAndHiddenFalse(UUID id);
+    Page<MachineInspection> findByUserIdAndHiddenFalse(UUID userId, Pageable pageable);
     
-    Page<MachineInspection> findByUserIdAndMachineId(UUID userId, UUID machineId, Pageable pageable);
+    Page<MachineInspection> findByUserIdAndMachineIdAndHiddenFalse(UUID userId, UUID machineId, Pageable pageable);
     
-    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId ORDER BY mi.inspectionDate DESC")
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.hidden = false ORDER BY mi.inspectionDate DESC")
     List<MachineInspection> findByUserIdAndMachineIdOrderByInspectionDateDesc(@Param("userId") UUID userId, @Param("machineId") UUID machineId);
     
-    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.inspectionDate >= :fromDate ORDER BY mi.inspectionDate ASC")
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.inspectionDate >= :fromDate AND mi.hidden = false ORDER BY mi.inspectionDate ASC")
     Optional<MachineInspection> findNextInspectionByMachineId(@Param("userId") UUID userId, @Param("machineId") UUID machineId, @Param("fromDate") LocalDate fromDate);
     
-    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.inspectionDate < :toDate ORDER BY mi.inspectionDate DESC")
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.inspectionDate < :toDate AND mi.hidden = false ORDER BY mi.inspectionDate DESC")
     List<MachineInspection> findLastInspectionByMachineId(@Param("userId") UUID userId, @Param("machineId") UUID machineId, @Param("toDate") LocalDate toDate);
     
-    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.inspectionDate BETWEEN :startDate AND :endDate ORDER BY mi.inspectionDate DESC")
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.userId = :userId AND mi.inspectionDate BETWEEN :startDate AND :endDate AND mi.hidden = false ORDER BY mi.inspectionDate DESC")
     Page<MachineInspection> findByUserIdAndInspectionDateBetween(@Param("userId") UUID userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, Pageable pageable);
     
-    @Query("SELECT COUNT(mi) FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId")
+    @Query("SELECT COUNT(mi) FROM MachineInspection mi WHERE mi.userId = :userId AND mi.machineId = :machineId AND mi.hidden = false")
     long countByUserIdAndMachineId(@Param("userId") UUID userId, @Param("machineId") UUID machineId);
 }

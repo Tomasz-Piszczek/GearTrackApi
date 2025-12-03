@@ -28,24 +28,20 @@ public class MachineMapper {
         long totalInspections = 0;
         
         try {
-            // Get next inspection (future inspections)
             Optional<MachineInspection> nextInspection = machineInspectionRepository
                     .findNextInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
             if (nextInspection.isPresent()) {
                 nextInspectionDate = nextInspection.get().getInspectionDate();
             }
             
-            // Get last inspection (past inspections)
             List<MachineInspection> lastInspections = machineInspectionRepository
                     .findLastInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
             if (!lastInspections.isEmpty()) {
                 lastInspectionDate = lastInspections.get(0).getInspectionDate();
             }
             
-            // Get total inspections count
             totalInspections = machineInspectionRepository.countByUserIdAndMachineId(machine.getUserId(), machine.getId());
         } catch (Exception e) {
-            // If inspection queries fail, continue with null values
         }
         
         return MachineDto.builder()

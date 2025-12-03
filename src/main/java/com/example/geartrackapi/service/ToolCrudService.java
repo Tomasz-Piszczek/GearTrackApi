@@ -30,9 +30,8 @@ public class ToolCrudService {
     private final EmployeeToolMapper employeeToolMapper;
     
     public List<ToolDto> findAllTools() {
-        log.debug("[findAllTools] Getting all tools for authenticated user");
         UUID userId = SecurityUtils.authenticatedUserId();
-        return toolRepository.findByUserId(userId)
+        return toolRepository.findByUserIdAndHiddenFalse(userId)
                 .stream()
                 .map(tool -> {
                     return toolMapper.toDto(tool, employeeToolRepository.getAvailableQuantityByUserIdAndToolId(userId, tool.getId()));
@@ -41,32 +40,28 @@ public class ToolCrudService {
     }
     
     public ToolDto createTool(ToolDto toolDto) {
-        log.debug("[createTool] Creating tool with name: {}", toolDto.getName());
         Tool tool = toolMapper.toEntity(toolDto);
         tool.setUserId(SecurityUtils.authenticatedUserId());
         return toolMapper.toDto(toolRepository.save(tool));
     }
     
     public ToolDto updateTool(ToolDto toolDto) {
-        log.debug("[updateTool] Updating tool with UUID: {}", toolDto.getUuid());
-        Tool tool = toolRepository.findById(toolDto.getUuid())
+        Tool tool = toolRepository.findByIdAndHiddenFalse(toolDto.getUuid())
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolDto.getUuid()));
         toolMapper.updateEntity(tool, toolDto);
         return toolMapper.toDto(toolRepository.save(tool));
     }
     
     public void deleteTool(UUID id) {
-        log.debug("[deleteTool] Deleting tool with UUID: {}", id);
-        Tool tool = toolRepository.findById(id)
+        Tool tool = toolRepository.findByIdAndHiddenFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + id));
-        toolRepository.delete(tool);
+        tool.setHidden(true);
+        toolRepository.save(tool);
     }
     
     public AssignToolDto assignToolToEmployee(AssignToolDto assignDto) {
-        log.debug("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-
         UUID userId = SecurityUtils.authenticatedUserId();
-        Tool tool = toolRepository.findById(assignDto.getToolId())
+        Tool tool = toolRepository.findByIdAndHiddenFalse(assignDto.getToolId())
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + assignDto.getToolId()));
         
         Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByUserIdAndToolId(userId, assignDto.getToolId());
@@ -85,9 +80,6 @@ public class ToolCrudService {
     }
     
     public void unassignToolFromEmployee(AssignToolDto assignDto) {
-        log.debug("[unassignToolFromEmployee] Unassigning {} quantity of tool UUID: {} with condition '{}' from employee UUID: {}", 
-                  assignDto.getQuantity(), assignDto.getToolId(), assignDto.getCondition(), assignDto.getEmployeeId());
-        
         UUID userId = SecurityUtils.authenticatedUserId();
         List<EmployeeTool> matchingAssignments = employeeToolRepository.findByUserIdAndEmployeeId(userId, assignDto.getEmployeeId())
                 .stream()
@@ -103,19 +95,14 @@ public class ToolCrudService {
                 .orElseThrow(() -> new IllegalArgumentException("Insufficient quantity to remove. Requested: " + assignDto.getQuantity()));
         
         if (assignmentToModify.getQuantity().equals(assignDto.getQuantity())) {
-            // Remove the entire assignment if quantities match
             employeeToolRepository.delete(assignmentToModify);
-            log.debug("[unassignToolFromEmployee] Deleted assignment with ID: {}", assignmentToModify.getId());
         } else {
-            // Reduce the quantity
             assignmentToModify.setQuantity(assignmentToModify.getQuantity() - assignDto.getQuantity());
             employeeToolRepository.save(assignmentToModify);
-            log.debug("[unassignToolFromEmployee] Reduced assignment quantity to: {}", assignmentToModify.getQuantity());
         }
     }
     
     public List<AssignToolDto> getToolsAssignedToEmployee(UUID employeeId) {
-        log.debug("[getToolsAssignedToEmployee] Getting tools assigned to employee UUID: {}", employeeId);
         return employeeToolRepository.findByUserIdAndEmployeeId(SecurityUtils.authenticatedUserId(), employeeId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)
@@ -123,7 +110,6 @@ public class ToolCrudService {
     }
     
     public List<AssignToolDto> getEmployeesAssignedToTool(UUID toolId) {
-        log.debug("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
         return employeeToolRepository.findByUserIdAndToolId(SecurityUtils.authenticatedUserId(), toolId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)

@@ -34,7 +34,6 @@ public class AuthService {
     private String googleClientId;
     
     public AuthResponseDto register(RegisterDto registerDto) {
-        log.debug("[register] Registering user with email: {}", registerDto.getEmail());
         User user = new User();
         user.setEmail(registerDto.getEmail());
         user.setPasswordHash(passwordEncoder.encode(registerDto.getPassword()));
@@ -54,8 +53,7 @@ public class AuthService {
     }
     
     public AuthResponseDto login(LoginDto loginDto) {
-        log.debug("[login] Attempting login for email: {}", loginDto.getEmail());
-        User user = userRepository.findByEmail(loginDto.getEmail());
+        User user = userRepository.findByEmailAndHiddenFalse(loginDto.getEmail());
         
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPasswordHash())) {
             String token = jwtUtils.generateToken(user.getEmail(), user.getId());
@@ -73,30 +71,24 @@ public class AuthService {
     }
     
     public AuthResponseDto handleGoogleLogin(String idToken) {
-        log.debug("[handleGoogleLogin] Verifying Google ID token");
         
         try {
-            // Verify the Google ID token
             String url = "https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken;
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 JsonNode tokenInfo = objectMapper.readTree(response.getBody());
                 
-                // Verify the token is for our app
                 String audience = tokenInfo.get("aud").asText();
                 if (!googleClientId.equals(audience)) {
                     throw new RuntimeException("Invalid token audience");
                 }
                 
-                // Extract user information
                 String email = tokenInfo.get("email").asText();
                 String name = tokenInfo.get("name").asText();
                 
-                log.debug("[handleGoogleLogin] Google login for email: {}", email);
                 
-                // Find or create user
-                User user = userRepository.findByEmail(email);
+                User user = userRepository.findByEmailAndHiddenFalse(email);
                 if (user == null) {
                     user = new User();
                     user.setEmail(email);
@@ -104,7 +96,6 @@ public class AuthService {
                     user.setEmailVerified(true);
                     user.setPasswordHash("GOOGLE_OAUTH2_USER");
                     user = userRepository.save(user);
-                    log.debug("[handleGoogleLogin] Created new user for email: {}", email);
                 }
                 
                 String token = jwtUtils.generateToken(user.getEmail(), user.getId());
@@ -126,7 +117,6 @@ public class AuthService {
     }
     
     public AuthResponseDto refreshToken(String refreshToken) {
-        log.debug("[refreshToken] Refreshing token");
         
         if (!jwtUtils.validateToken(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
@@ -135,7 +125,7 @@ public class AuthService {
         String email = jwtUtils.getUsernameFromToken(refreshToken);
         UUID userId = jwtUtils.getUserIdFromToken(refreshToken);
         
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmailAndHiddenFalse(email);
         if (user == null) {
             throw new RuntimeException("User not found");
         }

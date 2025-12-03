@@ -32,7 +32,7 @@ public class MachineInspectionService {
     
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getAllInspections(Pageable pageable) {
-        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserId(SecurityUtils.authenticatedUserId(), pageable);
+        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndHiddenFalse(SecurityUtils.authenticatedUserId(), pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
@@ -42,7 +42,7 @@ public class MachineInspectionService {
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getInspectionsByMachineId(UUID machineId, Pageable pageable) {
         UUID userId = SecurityUtils.authenticatedUserId();
-        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndMachineId(userId, machineId, pageable);
+        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndMachineIdAndHiddenFalse(userId, machineId, pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
@@ -50,8 +50,11 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {
-        log.debug("[createInspection] Creating inspection for machine {}", createDto.getMachineId());
+        Machine machine = machineRepository.findByIdAndHiddenFalse(createDto.getMachineId())
+                .orElseThrow(() -> new RuntimeException("Machine not found"));
+        
         MachineInspection inspection = MachineInspection.builder()
+                .userId(SecurityUtils.authenticatedUserId())
                 .machineId(createDto.getMachineId())
                 .inspectionDate(createDto.getInspectionDate())
                 .notes(createDto.getNotes())
@@ -61,9 +64,9 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
-        log.debug("[updateInspection] Updating inspection {}", inspectionId);
-        MachineInspection inspection = machineInspectionRepository.findById(inspectionId)
+        MachineInspection inspection = machineInspectionRepository.findByIdAndHiddenFalse(inspectionId)
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
+        
         inspection.setMachineId(updateDto.getMachineId());
         inspection.setInspectionDate(updateDto.getInspectionDate());
         inspection.setNotes(updateDto.getNotes());
@@ -72,15 +75,14 @@ public class MachineInspectionService {
     }
     
     public void deleteInspection(UUID inspectionId) {
-        log.debug("[deleteInspection] Deleting inspection {}", inspectionId);
-        MachineInspection inspection = machineInspectionRepository.findById(inspectionId)
+        MachineInspection inspection = machineInspectionRepository.findByIdAndHiddenFalse(inspectionId)
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
-        machineInspectionRepository.delete(inspection);
+        inspection.setHidden(true);
+        machineInspectionRepository.save(inspection);
     }
     
     @Transactional(readOnly = true)
     public List<MachineInspectionDto> getInspectionHistoryByMachineId(UUID machineId) {
-        log.debug("[getInspectionHistoryByMachineId] Getting history for machine {}", machineId);
         return machineInspectionRepository.findByUserIdAndMachineIdOrderByInspectionDateDesc(SecurityUtils.authenticatedUserId(), machineId)
                 .stream()
                 .map(machineInspectionMapper::toDto)
