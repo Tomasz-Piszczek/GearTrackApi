@@ -15,6 +15,7 @@ public class CreateQuoteDto {
     private String productName;
     private Integer minQuantity;
     private Integer totalQuantity;
+    private Double totalPrice;
     private List<QuoteMaterialDto> materials;
     private List<QuoteProductionActivityDto> productionActivities;
 }

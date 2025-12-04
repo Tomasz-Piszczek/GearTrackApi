@@ -14,7 +14,7 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuoteProductionActivity extends BaseEntity {
+public class QuoteProductionActivity extends OrganizationalEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quote_id", referencedColumnName = "id", nullable = false)

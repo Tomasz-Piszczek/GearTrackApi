@@ -5,6 +5,7 @@ import com.example.geartrackapi.controller.tool.dto.ToolDto;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ToolController {
     
     private final ToolCrudService toolCrudService;

@@ -1,8 +1,10 @@
 package com.example.geartrackapi.security;
 
+import com.example.geartrackapi.dao.model.Role;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -20,11 +22,19 @@ public class SecurityUser implements UserDetails {
     private boolean accountNonExpired;
     private boolean accountNonLocked;
     private boolean credentialsNonExpired;
+    private Role role;
+    private UUID organizationId;
     private Collection<? extends GrantedAuthority> authorities;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities != null ? authorities : List.of();
+        if (authorities != null) {
+            return authorities;
+        }
+        if (role != null) {
+            return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        }
+        return List.of();
     }
 
     @Override

@@ -30,41 +30,41 @@ public class ToolCrudService {
     private final EmployeeToolMapper employeeToolMapper;
     
     public List<ToolDto> findAllTools() {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        return toolRepository.findByUserIdAndHiddenFalse(userId)
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        return toolRepository.findByOrganizationIdAndHiddenFalse(organizationId)
                 .stream()
                 .map(tool -> {
-                    return toolMapper.toDto(tool, employeeToolRepository.getAvailableQuantityByUserIdAndToolId(userId, tool.getId()));
+                    return toolMapper.toDto(tool, employeeToolRepository.getAvailableQuantityByOrganizationIdAndToolId(organizationId, tool.getId()));
                 })
                 .collect(Collectors.toList());
     }
     
     public ToolDto createTool(ToolDto toolDto) {
         Tool tool = toolMapper.toEntity(toolDto);
-        tool.setUserId(SecurityUtils.authenticatedUserId());
+        tool.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return toolMapper.toDto(toolRepository.save(tool));
     }
     
     public ToolDto updateTool(ToolDto toolDto) {
-        Tool tool = toolRepository.findByIdAndHiddenFalse(toolDto.getUuid())
+        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolDto.getUuid()));
         toolMapper.updateEntity(tool, toolDto);
         return toolMapper.toDto(toolRepository.save(tool));
     }
     
     public void deleteTool(UUID id) {
-        Tool tool = toolRepository.findByIdAndHiddenFalse(id)
+        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + id));
         tool.setHidden(true);
         toolRepository.save(tool);
     }
     
     public AssignToolDto assignToolToEmployee(AssignToolDto assignDto) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        Tool tool = toolRepository.findByIdAndHiddenFalse(assignDto.getToolId())
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(assignDto.getToolId(), organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + assignDto.getToolId()));
         
-        Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByUserIdAndToolId(userId, assignDto.getToolId());
+        Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByOrganizationIdAndToolId(organizationId, assignDto.getToolId());
         int availableQuantity = Math.max(0, tool.getQuantity() - totalAssigned);
         
         if (assignDto.getQuantity() > availableQuantity) {
@@ -75,13 +75,13 @@ public class ToolCrudService {
 
         EmployeeTool employeeTool = employeeToolMapper.toEntity(assignDto);
         employeeTool.setAssignedAt(assignDto.getAssignedAt() != null ? assignDto.getAssignedAt() : LocalDate.now());
-        employeeTool.setUserId(SecurityUtils.authenticatedUserId());
+        employeeTool.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
     }
     
     public void unassignToolFromEmployee(AssignToolDto assignDto) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        List<EmployeeTool> matchingAssignments = employeeToolRepository.findByUserIdAndEmployeeId(userId, assignDto.getEmployeeId())
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        List<EmployeeTool> matchingAssignments = employeeToolRepository.findByOrganizationIdAndEmployeeId(organizationId, assignDto.getEmployeeId())
                 .stream()
                 .filter(et -> et.getToolId().equals(assignDto.getToolId()) && 
                              et.getCondition().equals(assignDto.getCondition()))
@@ -103,14 +103,14 @@ public class ToolCrudService {
     }
     
     public List<AssignToolDto> getToolsAssignedToEmployee(UUID employeeId) {
-        return employeeToolRepository.findByUserIdAndEmployeeId(SecurityUtils.authenticatedUserId(), employeeId)
+        return employeeToolRepository.findByOrganizationIdAndEmployeeId(SecurityUtils.getCurrentOrganizationId(), employeeId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)
                 .collect(Collectors.toList());
     }
     
     public List<AssignToolDto> getEmployeesAssignedToTool(UUID toolId) {
-        return employeeToolRepository.findByUserIdAndToolId(SecurityUtils.authenticatedUserId(), toolId)
+        return employeeToolRepository.findByOrganizationIdAndToolId(SecurityUtils.getCurrentOrganizationId(), toolId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)
                 .collect(Collectors.toList());

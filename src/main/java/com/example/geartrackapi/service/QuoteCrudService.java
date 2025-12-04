@@ -32,7 +32,7 @@ public class QuoteCrudService {
     @Transactional
     public QuoteListDto createQuote(CreateQuoteDto dto) {
         Quote quote = quoteMapper.toEntity(dto);
-        quote.setUserId(SecurityUtils.authenticatedUserId());
+        quote.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         
         List<QuoteMaterial> materials = quoteMapper.toMaterialEntities(dto.getMaterials(), quote);
         List<QuoteProductionActivity> activities = quoteMapper.toProductionActivityEntities(dto.getProductionActivities(), quote);
@@ -46,7 +46,7 @@ public class QuoteCrudService {
 
     @Transactional
     public QuoteListDto updateQuote(UpdateQuoteDto dto) {
-        Quote quote = quoteRepository.findByIdAndHiddenFalse(dto.getUuid())
+        Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(dto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + dto.getUuid()));
         
         quote.setDocumentNumber(dto.getDocumentNumber());
@@ -56,6 +56,7 @@ public class QuoteCrudService {
         quote.setProductName(dto.getProductName());
         quote.setMinQuantity(dto.getMinQuantity());
         quote.setTotalQuantity(dto.getTotalQuantity());
+        quote.setTotalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null);
 
         updateQuoteMaterials(quote, dto.getMaterials());
         updateQuoteProductionActivities(quote, dto.getProductionActivities());
@@ -95,7 +96,7 @@ public class QuoteCrudService {
     }
 
     public Page<QuoteListDto> getQuotes(String search, Pageable pageable) {
-        Page<Quote> quotePage = quoteRepository.findBySearch(search, pageable);
+        Page<Quote> quotePage = quoteRepository.findBySearchAndOrganization(search, SecurityUtils.getCurrentOrganizationId(), pageable);
         List<QuoteListDto> dtos = quotePage.getContent().stream()
                 .map(quoteMapper::toListDto)
                 .collect(Collectors.toList());
@@ -104,13 +105,13 @@ public class QuoteCrudService {
     }
 
     public QuoteDetailsDto getQuoteDetails(UUID id) {
-        Quote quote = quoteRepository.findByIdAndHiddenFalse(id)
+        Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + id));
         return quoteMapper.toDetailsDto(quote);
     }
 
     public void deleteQuote(UUID id) {
-        Quote quote = quoteRepository.findByIdAndHiddenFalse(id)
+        Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + id));
         quote.setHidden(true);
         quoteRepository.save(quote);
@@ -122,7 +123,7 @@ public class QuoteCrudService {
         LocalDateTime startOfNextMonth = startOfMonth.plusMonths(1);
         
         String monthYear = now.format(DateTimeFormatter.ofPattern("MM/yyyy"));
-        Long count = quoteRepository.countQuotesForMonth(startOfMonth, startOfNextMonth, monthYear);
+        Long count = quoteRepository.countQuotesForMonthAndOrganization(startOfMonth, startOfNextMonth, monthYear, SecurityUtils.getCurrentOrganizationId());
         
         Integer nextNumber = count.intValue() + 1;
         String nextQuoteNumber = String.format("OFE/%d/%02d/%d", nextNumber, now.getMonthValue(), now.getYear());

@@ -21,6 +21,7 @@ public class QuoteMapper {
                 .productName(dto.getProductName())
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
+                .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
                 .build();
     }
 
@@ -34,6 +35,7 @@ public class QuoteMapper {
                 .productName(dto.getProductName())
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
+                .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
                 .build();
     }
 
@@ -47,6 +49,7 @@ public class QuoteMapper {
                 .productName(entity.getProductName())
                 .minQuantity(entity.getMinQuantity())
                 .totalQuantity(entity.getTotalQuantity())
+                .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -62,6 +65,7 @@ public class QuoteMapper {
                 .productName(entity.getProductName())
                 .minQuantity(entity.getMinQuantity())
                 .totalQuantity(entity.getTotalQuantity())
+                .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
                 .materials(entity.getMaterials().stream().map(this::toMaterialDto).collect(Collectors.toList()))
                 .productionActivities(entity.getProductionActivities().stream().map(this::toProductionActivityDto).collect(Collectors.toList()))
                 .createdAt(entity.getCreatedAt())
@@ -79,7 +83,7 @@ public class QuoteMapper {
         return QuoteMaterial.builder()
                 .id(dto.getUuid())
                 .quote(quote)
-                .userId(quote.getUserId())
+                .organizationId(quote.getOrganizationId())
                 .name(dto.getName())
                 .purchasePrice(dto.getPurchasePrice())
                 .marginPercent(dto.getMarginPercent())
@@ -113,7 +117,7 @@ public class QuoteMapper {
         return QuoteProductionActivity.builder()
                 .id(dto.getUuid())
                 .quote(quote)
-                .userId(quote.getUserId())
+                .organizationId(quote.getOrganizationId())
                 .name(dto.getName())
                 .workTimeMinutes(totalMinutes)
                 .price(dto.getPrice())

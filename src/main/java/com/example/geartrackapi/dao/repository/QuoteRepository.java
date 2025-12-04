@@ -15,22 +15,24 @@ import java.util.UUID;
 @Repository
 public interface QuoteRepository extends JpaRepository<Quote, UUID> {
     
-    Optional<Quote> findByIdAndHiddenFalse(UUID id);
-    @Query("SELECT q FROM Quote q WHERE q.hidden = false AND " +
+    Optional<Quote> findByIdAndOrganizationIdAndHiddenFalse(UUID id, UUID organizationId);
+    
+    @Query("SELECT q FROM Quote q WHERE q.hidden = false AND q.organizationId = :organizationId AND " +
            "(:search IS NULL OR :search = '' OR " +
            "UPPER(q.documentNumber) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.contractorCode) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.contractorName) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.productCode) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.productName) LIKE UPPER(CONCAT('%', :search, '%')))")
-    Page<Quote> findBySearch(@Param("search") String search, Pageable pageable);
+    Page<Quote> findBySearchAndOrganization(@Param("search") String search, @Param("organizationId") UUID organizationId, Pageable pageable);
     
-    @Query("SELECT COUNT(q) FROM Quote q WHERE q.hidden = false AND " +
+    @Query("SELECT COUNT(q) FROM Quote q WHERE q.hidden = false AND q.organizationId = :organizationId AND " +
            "q.createdAt >= :startOfMonth AND q.createdAt < :startOfNextMonth AND " +
            "q.documentNumber LIKE CONCAT('OFE/%', :monthYear, '%')")
-    Long countQuotesForMonth(@Param("startOfMonth") LocalDateTime startOfMonth, 
+    Long countQuotesForMonthAndOrganization(@Param("startOfMonth") LocalDateTime startOfMonth, 
                             @Param("startOfNextMonth") LocalDateTime startOfNextMonth,
-                            @Param("monthYear") String monthYear);
+                            @Param("monthYear") String monthYear,
+                            @Param("organizationId") UUID organizationId);
     
 
 }

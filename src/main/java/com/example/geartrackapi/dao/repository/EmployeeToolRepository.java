@@ -11,21 +11,21 @@ import java.util.UUID;
 
 @Repository
 public interface EmployeeToolRepository extends JpaRepository<EmployeeTool, UUID> {
-    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.userId = :userId AND et.employeeId = :employeeId AND et.hidden = false")
-    List<EmployeeTool> findByUserIdAndEmployeeId(@Param("userId") UUID userId, @Param("employeeId") UUID employeeId);
+    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.organizationId = :organizationId AND et.employeeId = :employeeId AND et.hidden = false")
+    List<EmployeeTool> findByOrganizationIdAndEmployeeId(@Param("organizationId") UUID organizationId, @Param("employeeId") UUID employeeId);
     
-    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.userId = :userId AND et.toolId = :toolId AND et.hidden = false")
-    List<EmployeeTool> findByUserIdAndToolId(@Param("userId") UUID userId, @Param("toolId") UUID toolId);
+    @Query("SELECT et FROM EmployeeTool et JOIN FETCH et.employee JOIN FETCH et.tool WHERE et.organizationId = :organizationId AND et.toolId = :toolId AND et.hidden = false")
+    List<EmployeeTool> findByOrganizationIdAndToolId(@Param("organizationId") UUID organizationId, @Param("toolId") UUID toolId);
 
-    @Query("SELECT COALESCE(SUM(et.quantity), 0) FROM EmployeeTool et WHERE et.userId = :userId AND et.toolId = :toolId AND et.hidden = false")
-    Integer getTotalAssignedQuantityByUserIdAndToolId(@Param("userId") UUID userId, @Param("toolId") UUID toolId);
+    @Query("SELECT COALESCE(SUM(et.quantity), 0) FROM EmployeeTool et WHERE et.organizationId = :organizationId AND et.toolId = :toolId AND et.hidden = false")
+    Integer getTotalAssignedQuantityByOrganizationIdAndToolId(@Param("organizationId") UUID organizationId, @Param("toolId") UUID toolId);
     
     @Query("SELECT GREATEST(0, t.quantity - COALESCE(SUM(et.quantity), 0)) " +
-           "FROM Tool t LEFT JOIN EmployeeTool et ON t.id = et.toolId AND et.userId = :userId AND et.hidden = false " +
-           "WHERE t.id = :toolId AND t.userId = :userId AND t.hidden = false " +
+           "FROM Tool t LEFT JOIN EmployeeTool et ON t.id = et.toolId AND et.organizationId = :organizationId AND et.hidden = false " +
+           "WHERE t.id = :toolId AND t.organizationId = :organizationId AND t.hidden = false " +
            "GROUP BY t.id, t.quantity")
-    Integer getAvailableQuantityByUserIdAndToolId(@Param("userId") UUID userId, @Param("toolId") UUID toolId);
+    Integer getAvailableQuantityByOrganizationIdAndToolId(@Param("organizationId") UUID organizationId, @Param("toolId") UUID toolId);
     
-    List<EmployeeTool> findByUserIdAndHiddenFalse(UUID userId);
+    List<EmployeeTool> findByOrganizationIdAndHiddenFalse(UUID organizationId);
     
 }

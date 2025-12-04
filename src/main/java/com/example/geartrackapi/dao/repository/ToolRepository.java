@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface ToolRepository extends JpaRepository<Tool, UUID> {
-    Optional<Tool> findByIdAndHiddenFalse(UUID id);
-    List<Tool> findByUserIdAndHiddenFalse(UUID userId);
-    Page<Tool> findByUserIdAndHiddenFalse(UUID userId, Pageable pageable);
+    Optional<Tool> findByIdAndOrganizationIdAndHiddenFalse(UUID id, UUID organizationId);
+    List<Tool> findByOrganizationIdAndHiddenFalse(UUID organizationId);
+    Page<Tool> findByOrganizationIdAndHiddenFalse(UUID organizationId, Pageable pageable);
 }

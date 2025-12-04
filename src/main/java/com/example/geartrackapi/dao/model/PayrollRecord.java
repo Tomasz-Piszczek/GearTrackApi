@@ -1,8 +1,8 @@
 package com.example.geartrackapi.dao.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -11,7 +11,10 @@ import java.util.UUID;
 @Table(name = "payroll_records")
 @Getter
 @Setter
-public class PayrollRecord extends BaseEntity {
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PayrollRecord extends OrganizationalEntity {
     
     @Column(name = "employee_id", nullable = false)
     private UUID employeeId;

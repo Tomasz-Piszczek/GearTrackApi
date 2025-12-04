@@ -29,18 +29,18 @@ public class MachineMapper {
         
         try {
             Optional<MachineInspection> nextInspection = machineInspectionRepository
-                    .findNextInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
+                    .findNextInspectionByMachineId(machine.getOrganizationId(), machine.getId(), LocalDate.now());
             if (nextInspection.isPresent()) {
                 nextInspectionDate = nextInspection.get().getInspectionDate();
             }
             
             List<MachineInspection> lastInspections = machineInspectionRepository
-                    .findLastInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
+                    .findLastInspectionByMachineId(machine.getOrganizationId(), machine.getId(), LocalDate.now());
             if (!lastInspections.isEmpty()) {
                 lastInspectionDate = lastInspections.get(0).getInspectionDate();
             }
             
-            totalInspections = machineInspectionRepository.countByUserIdAndMachineId(machine.getUserId(), machine.getId());
+            totalInspections = machineInspectionRepository.countByOrganizationIdAndMachineId(machine.getOrganizationId(), machine.getId());
         } catch (Exception e) {
         }
         

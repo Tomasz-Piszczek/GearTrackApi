@@ -17,6 +17,7 @@ public class QuoteListDto {
     private String productName;
     private Integer minQuantity;
     private Integer totalQuantity;
+    private Double totalPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

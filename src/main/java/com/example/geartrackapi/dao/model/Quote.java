@@ -17,7 +17,7 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Quote extends BaseEntity {
+public class Quote extends OrganizationalEntity {
     
     @Column(name = "document_number", nullable = false, length = 100)
     private String documentNumber;
@@ -39,6 +39,9 @@ public class Quote extends BaseEntity {
     
     @Column(name = "total_quantity", nullable = false)
     private Integer totalQuantity;
+    
+    @Column(name = "total_price", precision = 10, scale = 2)
+    private BigDecimal totalPrice;
     
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")

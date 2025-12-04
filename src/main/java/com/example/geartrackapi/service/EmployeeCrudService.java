@@ -26,13 +26,13 @@ public class EmployeeCrudService {
     private final EmployeeMapper employeeMapper;
     
     public Page<EmployeeDto> findAllEmployees(String search, Pageable pageable) {
-        UUID userId = SecurityUtils.authenticatedUserId();
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         Page<Employee> employeePage;
         
         if (search != null && !search.trim().isEmpty()) {
-            employeePage = employeeRepository.findByUserIdAndNameContaining(userId, search.trim(), pageable);
+            employeePage = employeeRepository.findByOrganizationIdAndNameContaining(organizationId, search.trim(), pageable);
         } else {
-            employeePage = employeeRepository.findByUserIdAndHiddenFalse(userId, pageable);
+            employeePage = employeeRepository.findByOrganizationIdAndHiddenFalse(organizationId, pageable);
         }
         
         List<EmployeeDto> employeeDtos = employeePage.getContent()
@@ -50,9 +50,8 @@ public class EmployeeCrudService {
     }
     
     public EmployeeDto createEmployee(EmployeeDto employeeDto) {
-        UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeMapper.toEntity(employeeDto);
-        employee.setUserId(userId);
+        employee.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
     

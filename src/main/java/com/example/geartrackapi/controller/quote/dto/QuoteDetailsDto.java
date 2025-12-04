@@ -18,6 +18,7 @@ public class QuoteDetailsDto {
     private String productName;
     private Integer minQuantity;
     private Integer totalQuantity;
+    private Double totalPrice;
     private List<QuoteMaterialDto> materials;
     private List<QuoteProductionActivityDto> productionActivities;
     private LocalDateTime createdAt;

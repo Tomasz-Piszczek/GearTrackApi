@@ -27,7 +27,7 @@ public class MachineCrudService {
     private final MachineMapper machineMapper;
     
     public Page<MachineDto> findAllMachines(Pageable pageable) {
-        Page<Machine> machinePage = machineRepository.findByUserIdAndHiddenFalse(SecurityUtils.authenticatedUserId(), pageable);
+        Page<Machine> machinePage = machineRepository.findByOrganizationIdAndHiddenFalse(SecurityUtils.getCurrentOrganizationId(), pageable);
         List<MachineDto> machineDtos = machinePage.getContent()
                 .stream()
                 .map(machineMapper::toDto)
@@ -37,26 +37,26 @@ public class MachineCrudService {
     
     public MachineDto createMachine(MachineDto machineDto) {
         Machine machine = machineMapper.toEntity(machineDto);
-        machine.setUserId(SecurityUtils.authenticatedUserId());
+        machine.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return machineMapper.toDto(machineRepository.save(machine));
     }
     
     public MachineDto updateMachine(MachineDto machineDto) {
-        Machine machine = machineRepository.findByIdAndHiddenFalse(machineDto.getUuid())
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineDto.getUuid()));
         machineMapper.updateEntity(machine, machineDto);
         return machineMapper.toDto(machineRepository.save(machine));
     }
     
     public void deleteMachine(UUID id) {
-        Machine machine = machineRepository.findByIdAndHiddenFalse(id)
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + id));
         machine.setHidden(true);
         machineRepository.save(machine);
     }
     
     public MachineDto assignMachineToEmployee(AssignMachineDto assignDto) {
-        Machine machine = machineRepository.findByIdAndHiddenFalse(assignDto.getMachineId())
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(assignDto.getMachineId(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + assignDto.getMachineId()));
         machine.setEmployeeId(assignDto.getEmployeeId());
         return machineMapper.toDto(machineRepository.save(machine));

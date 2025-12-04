@@ -28,9 +28,9 @@ public class PayrollService {
     private final PayrollMapper payrollMapper;
     
     public List<PayrollRecordDto> getPayrollRecords(Integer year, Integer month) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndUserIdAndHiddenFalseOrderByEmployeeId(year, month, userId);
-        List<Employee> allEmployees = employeeRepository.findByUserIdAndHiddenFalse(userId);
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
+        List<Employee> allEmployees = employeeRepository.findByOrganizationIdAndHiddenFalse(organizationId);
         
         Map<UUID, PayrollRecord> recordMap = existingRecords.stream()
                 .collect(Collectors.toMap(PayrollRecord::getEmployeeId, Function.identity()));
@@ -58,9 +58,9 @@ public class PayrollService {
     }
     
     public void savePayrollRecords(List<PayrollRecordDto> records, Integer year, Integer month) {
-        UUID userId = SecurityUtils.authenticatedUserId();
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         
-        List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndUserIdAndHiddenFalseOrderByEmployeeId(year, month, userId);
+        List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
         Map<UUID, PayrollRecord> existingMap = existingRecords.stream()
                 .collect(Collectors.toMap(PayrollRecord::getEmployeeId, Function.identity()));
         
@@ -81,7 +81,7 @@ public class PayrollService {
                         return existing;
                     } else {
                         PayrollRecord record = payrollMapper.toEntity(dto, year, month);
-                        record.setUserId(userId);
+                        record.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
                         return record;
                     }
                 })

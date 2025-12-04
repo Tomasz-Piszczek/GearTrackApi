@@ -11,9 +11,9 @@ import java.util.UUID;
 
 @Repository
 public interface PayrollRecordRepository extends JpaRepository<PayrollRecord, UUID> {
-    List<PayrollRecord> findByYearAndMonthAndUserIdAndHiddenFalseOrderByEmployeeId(Integer year, Integer month, UUID userId);
-    List<PayrollRecord> findByUserIdAndHiddenFalse(UUID userId);
-    Page<PayrollRecord> findByUserIdAndHiddenFalse(UUID userId, Pageable pageable);
+    List<PayrollRecord> findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(Integer year, Integer month, UUID organizationId);
+    List<PayrollRecord> findByOrganizationIdAndHiddenFalse(UUID organizationId);
+    Page<PayrollRecord> findByOrganizationIdAndHiddenFalse(UUID organizationId, Pageable pageable);
     List<PayrollRecord> findByEmployeeIdAndHiddenFalse(UUID employeeId);
     
 }

@@ -6,6 +6,7 @@ import com.example.geartrackapi.controller.auth.dto.RegisterDto;
 import com.example.geartrackapi.dao.model.User;
 import com.example.geartrackapi.dao.repository.UserRepository;
 import com.example.geartrackapi.security.JwtUtils;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,9 +54,10 @@ public class AuthService {
     }
     
     public AuthResponseDto login(LoginDto loginDto) {
-        User user = userRepository.findByEmailAndHiddenFalse(loginDto.getEmail());
-        
-        if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPasswordHash())) {
+        User user = userRepository.findByEmailAndHiddenFalse(loginDto.getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("User with name: " + loginDto.getEmail() + " not found"));
+
+        if (passwordEncoder.matches(loginDto.getPassword(), user.getPasswordHash())) {
             String token = jwtUtils.generateToken(user.getEmail(), user.getId());
             String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId());
 
@@ -86,9 +88,11 @@ public class AuthService {
                 
                 String email = tokenInfo.get("email").asText();
                 String name = tokenInfo.get("name").asText();
+
+
+                User user = userRepository.findByEmailAndHiddenFalse(email)
+                        .orElse(null);
                 
-                
-                User user = userRepository.findByEmailAndHiddenFalse(email);
                 if (user == null) {
                     user = new User();
                     user.setEmail(email);
@@ -124,12 +128,7 @@ public class AuthService {
         
         String email = jwtUtils.getUsernameFromToken(refreshToken);
         UUID userId = jwtUtils.getUserIdFromToken(refreshToken);
-        
-        User user = userRepository.findByEmailAndHiddenFalse(email);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        
+
         String newToken = jwtUtils.generateToken(email, userId);
         String newRefreshToken = jwtUtils.generateRefreshToken(email, userId);
         

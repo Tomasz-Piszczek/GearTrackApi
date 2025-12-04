@@ -15,6 +15,7 @@ import java.util.UUID;
 @Repository
 public interface MachineRepository extends JpaRepository<Machine, UUID> {
     Optional<Machine> findByIdAndHiddenFalse(UUID id);
-    List<Machine> findByUserIdAndHiddenFalse(UUID userId);
-    Page<Machine> findByUserIdAndHiddenFalse(UUID userId, Pageable pageable);
+    Optional<Machine> findByIdAndOrganizationIdAndHiddenFalse(UUID id, UUID organizationId);
+    List<Machine> findByOrganizationIdAndHiddenFalse(UUID userId);
+    Page<Machine> findByOrganizationIdAndHiddenFalse(UUID userId, Pageable pageable);
 }

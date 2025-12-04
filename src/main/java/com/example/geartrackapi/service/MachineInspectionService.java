@@ -32,7 +32,7 @@ public class MachineInspectionService {
     
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getAllInspections(Pageable pageable) {
-        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndHiddenFalse(SecurityUtils.authenticatedUserId(), pageable);
+        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByOrganizationIdAndHiddenFalse(SecurityUtils.getCurrentOrganizationId(), pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
@@ -41,8 +41,8 @@ public class MachineInspectionService {
     
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getInspectionsByMachineId(UUID machineId, Pageable pageable) {
-        UUID userId = SecurityUtils.authenticatedUserId();
-        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByUserIdAndMachineIdAndHiddenFalse(userId, machineId, pageable);
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        Page<MachineInspection> inspectionPage = machineInspectionRepository.findByOrganizationIdAndMachineIdAndHiddenFalse(organizationId, machineId, pageable);
         List<MachineInspectionDto> inspectionDtos = inspectionPage.getContent().stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
@@ -50,11 +50,11 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {
-        Machine machine = machineRepository.findByIdAndHiddenFalse(createDto.getMachineId())
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(createDto.getMachineId(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Machine not found"));
         
         MachineInspection inspection = MachineInspection.builder()
-                .userId(SecurityUtils.authenticatedUserId())
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .machineId(createDto.getMachineId())
                 .inspectionDate(createDto.getInspectionDate())
                 .notes(createDto.getNotes())
@@ -64,7 +64,7 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
-        MachineInspection inspection = machineInspectionRepository.findByIdAndHiddenFalse(inspectionId)
+        MachineInspection inspection = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         
         inspection.setMachineId(updateDto.getMachineId());
@@ -75,7 +75,7 @@ public class MachineInspectionService {
     }
     
     public void deleteInspection(UUID inspectionId) {
-        MachineInspection inspection = machineInspectionRepository.findByIdAndHiddenFalse(inspectionId)
+        MachineInspection inspection = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         inspection.setHidden(true);
         machineInspectionRepository.save(inspection);
@@ -83,7 +83,7 @@ public class MachineInspectionService {
     
     @Transactional(readOnly = true)
     public List<MachineInspectionDto> getInspectionHistoryByMachineId(UUID machineId) {
-        return machineInspectionRepository.findByUserIdAndMachineIdOrderByInspectionDateDesc(SecurityUtils.authenticatedUserId(), machineId)
+        return machineInspectionRepository.findByOrganizationIdAndMachineIdOrderByInspectionDateDesc(SecurityUtils.getCurrentOrganizationId(), machineId)
                 .stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();

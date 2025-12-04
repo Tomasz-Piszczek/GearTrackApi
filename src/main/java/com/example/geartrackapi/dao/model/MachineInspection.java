@@ -17,7 +17,7 @@ import java.util.UUID;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MachineInspection extends BaseEntity {
+public class MachineInspection extends OrganizationalEntity {
     
     @Column(name = "inspection_date", nullable = false)
     private LocalDate inspectionDate;

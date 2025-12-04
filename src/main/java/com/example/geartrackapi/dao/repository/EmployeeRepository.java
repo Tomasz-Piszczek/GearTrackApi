@@ -15,9 +15,10 @@ import java.util.UUID;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     Optional<Employee> findByIdAndHiddenFalse(UUID id);
-    List<Employee> findByUserIdAndHiddenFalse(UUID userId);
-    Page<Employee> findByUserIdAndHiddenFalse(UUID userId, Pageable pageable);
+    Optional<Employee> findByIdAndOrganizationIdAndHiddenFalse(UUID id, UUID organizationId);
+    List<Employee> findByOrganizationIdAndHiddenFalse(UUID userId);
+    Page<Employee> findByOrganizationIdAndHiddenFalse(UUID userId, Pageable pageable);
     
-    @Query("SELECT e FROM Employee e WHERE e.userId = :userId AND e.hidden = false AND (LOWER(e.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(e.lastName) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<Employee> findByUserIdAndNameContaining(@Param("userId") UUID userId, @Param("search") String search, Pageable pageable);
+    @Query("SELECT e FROM Employee e WHERE e.organizationId = :userId AND e.hidden = false AND (LOWER(e.firstName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(e.lastName) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<Employee> findByOrganizationIdAndNameContaining(@Param("userId") UUID userId, @Param("search") String search, Pageable pageable);
 }
