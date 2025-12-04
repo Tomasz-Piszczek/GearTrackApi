@@ -2,10 +2,10 @@ package com.example.geartrackapi.dao.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -14,10 +14,10 @@ import java.util.UUID;
 @Table(name = "machine_inspections")
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MachineInspection extends BaseEntity {
+public class MachineInspection extends OrganizationalEntity {
     
     @Column(name = "inspection_date", nullable = false)
     private LocalDate inspectionDate;

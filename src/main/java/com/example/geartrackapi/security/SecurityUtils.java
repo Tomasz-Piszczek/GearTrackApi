@@ -14,12 +14,17 @@ public final class SecurityUtils {
     }
 
     public static UUID authenticatedUserId() {
-        return getCurrentUserId().orElseThrow(() -> new EntityNotFoundException("User Id not found"));
+        return getCurrentUserId();
     }
 
-    public static Optional<UUID> getCurrentUserId() {
+    public static UUID getCurrentUserId() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        return Optional.ofNullable(extractPrincipalUserId(securityContext.getAuthentication()));
+        return extractPrincipalUserId(securityContext.getAuthentication());
+    }
+
+    public static UUID getCurrentOrganizationId() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        return extractPrincipalOrganizationId(securityContext.getAuthentication());
     }
 
     public static UUID extractPrincipalUserId(Authentication authentication) {
@@ -29,6 +34,17 @@ public final class SecurityUtils {
         Object principal = authentication.getPrincipal();
         if (principal instanceof SecurityUser springSecurityUser) {
             return springSecurityUser.getUserId();
+        }
+        return null;
+    }
+
+    public static UUID extractPrincipalOrganizationId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof SecurityUser springSecurityUser) {
+            return springSecurityUser.getOrganizationId();
         }
         return null;
     }

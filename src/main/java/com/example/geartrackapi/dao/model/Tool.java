@@ -1,8 +1,8 @@
 package com.example.geartrackapi.dao.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,7 +11,10 @@ import java.util.List;
 @Table(name = "tools")
 @Getter
 @Setter
-public class Tool extends BaseEntity {
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Tool extends OrganizationalEntity {
     
     @Column(name = "name", nullable = false)
     private String name;

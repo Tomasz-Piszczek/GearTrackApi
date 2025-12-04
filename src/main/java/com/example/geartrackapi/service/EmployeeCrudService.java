@@ -26,14 +26,13 @@ public class EmployeeCrudService {
     private final EmployeeMapper employeeMapper;
     
     public Page<EmployeeDto> findAllEmployees(String search, Pageable pageable) {
-        log.debug("[findAllEmployees] Getting paginated employees for authenticated user with search: {}", search);
-        UUID userId = SecurityUtils.authenticatedUserId();
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         Page<Employee> employeePage;
         
         if (search != null && !search.trim().isEmpty()) {
-            employeePage = employeeRepository.findByUserIdAndNameContaining(userId, search.trim(), pageable);
+            employeePage = employeeRepository.findByOrganizationIdAndNameContaining(organizationId, search.trim(), pageable);
         } else {
-            employeePage = employeeRepository.findByUserId(userId, pageable);
+            employeePage = employeeRepository.findByOrganizationIdAndHiddenFalse(organizationId, pageable);
         }
         
         List<EmployeeDto> employeeDtos = employeePage.getContent()
@@ -45,35 +44,41 @@ public class EmployeeCrudService {
     }
     
     public EmployeeDto findEmployeeById(UUID id) {
-        log.debug("[findEmployeeById] Getting employee with UUID: {}", id);
-        Employee employee = employeeRepository.findById(id)
+        Employee employee = employeeRepository.findByIdAndHiddenFalse(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
-
         return employeeMapper.toDto(employee);
     }
     
     public EmployeeDto createEmployee(EmployeeDto employeeDto) {
-        log.debug("[createEmployee] Creating employee with name: {} {}", employeeDto.getFirstName(), employeeDto.getLastName());
-        UUID userId = SecurityUtils.authenticatedUserId();
         Employee employee = employeeMapper.toEntity(employeeDto);
-        employee.setUserId(userId);
+        employee.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
     
     public EmployeeDto updateEmployee(EmployeeDto employeeDto) {
-        log.debug("[updateEmployee] Updating employee with UUID: {}", employeeDto.getUuid());
-        Employee employee = employeeRepository.findById(employeeDto.getUuid())
+        Employee employee = employeeRepository.findByIdAndHiddenFalse(employeeDto.getUuid())
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + employeeDto.getUuid()));
-
         employeeMapper.updateEntity(employee, employeeDto);
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
     
     public void deleteEmployee(UUID id) {
-        log.debug("[deleteEmployee] Deleting employee with UUID: {}", id);
+        Employee employee = employeeRepository.findByIdAndHiddenFalse(id)
+                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
+        employee.setHidden(true);
+        employeeRepository.save(employee);
+    }
+    
+    public EmployeeDto restoreEmployee(UUID id) {
         Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
         
-        employeeRepository.delete(employee);
+        if (Boolean.FALSE.equals(employee.getHidden())) {
+            throw new IllegalStateException("Employee with UUID: " + id + " is not deleted");
+        }
+        
+        employee.setHidden(false);
+        Employee restored = employeeRepository.save(employee);
+        return employeeMapper.toDto(restored);
     }
 }
