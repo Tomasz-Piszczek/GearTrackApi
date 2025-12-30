@@ -64,14 +64,11 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
-        MachineInspection inspection = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
+        MachineInspection existing = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         
-        inspection.setMachineId(updateDto.getMachineId());
-        inspection.setInspectionDate(updateDto.getInspectionDate());
-        inspection.setNotes(updateDto.getNotes());
-        inspection.setStatus(updateDto.getStatus() != null ? updateDto.getStatus() : inspection.getStatus());
-        return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
+        MachineInspection updated = machineInspectionMapper.updateEntity(existing, updateDto);
+        return machineInspectionMapper.toDto(machineInspectionRepository.save(updated));
     }
     
     public void deleteInspection(UUID inspectionId) {

@@ -51,15 +51,14 @@ public class EmployeeCrudService {
     
     public EmployeeDto createEmployee(EmployeeDto employeeDto) {
         Employee employee = employeeMapper.toEntity(employeeDto);
-        employee.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return employeeMapper.toDto(employeeRepository.save(employee));
     }
     
     public EmployeeDto updateEmployee(EmployeeDto employeeDto) {
-        Employee employee = employeeRepository.findByIdAndHiddenFalse(employeeDto.getUuid())
+        Employee existing = employeeRepository.findByIdAndHiddenFalse(employeeDto.getUuid())
                 .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + employeeDto.getUuid()));
-        employeeMapper.updateEntity(employee, employeeDto);
-        return employeeMapper.toDto(employeeRepository.save(employee));
+        Employee updated = employeeMapper.updateEntity(existing, employeeDto);
+        return employeeMapper.toDto(employeeRepository.save(updated));
     }
     
     public void deleteEmployee(UUID id) {
@@ -68,17 +67,5 @@ public class EmployeeCrudService {
         employee.setHidden(true);
         employeeRepository.save(employee);
     }
-    
-    public EmployeeDto restoreEmployee(UUID id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
-        
-        if (Boolean.FALSE.equals(employee.getHidden())) {
-            throw new IllegalStateException("Employee with UUID: " + id + " is not deleted");
-        }
-        
-        employee.setHidden(false);
-        Employee restored = employeeRepository.save(employee);
-        return employeeMapper.toDto(restored);
-    }
+
 }

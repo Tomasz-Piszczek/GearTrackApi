@@ -2,6 +2,7 @@ package com.example.geartrackapi.mapper;
 
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.dao.model.EmployeeTool;
+import com.example.geartrackapi.security.SecurityUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,12 +25,12 @@ public class EmployeeToolMapper {
     }
     
     public EmployeeTool toEntity(AssignToolDto dto) {
-        EmployeeTool employeeTool = new EmployeeTool();
-        employeeTool.setEmployeeId(dto.getEmployeeId());
-        employeeTool.setToolId(dto.getToolId());
-        employeeTool.setQuantity(dto.getQuantity());
-        employeeTool.setCondition(dto.getCondition());
-        employeeTool.setAssignedAt(dto.getAssignedAt());
-        return employeeTool;
+        return EmployeeTool.builder()
+                .employeeId(dto.getEmployeeId())
+                .toolId(dto.getToolId())
+                .quantity(dto.getQuantity())
+                .condition(dto.getCondition())
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
+                .build();
     }
 }

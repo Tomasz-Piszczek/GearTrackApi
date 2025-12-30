@@ -32,7 +32,6 @@ public class QuoteCrudService {
     @Transactional
     public QuoteListDto createQuote(CreateQuoteDto dto) {
         Quote quote = quoteMapper.toEntity(dto);
-        quote.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         
         List<QuoteMaterial> materials = quoteMapper.toMaterialEntities(dto.getMaterials(), quote);
         List<QuoteProductionActivity> activities = quoteMapper.toProductionActivityEntities(dto.getProductionActivities(), quote);
@@ -46,17 +45,10 @@ public class QuoteCrudService {
 
     @Transactional
     public QuoteListDto updateQuote(UpdateQuoteDto dto) {
-        Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(dto.getUuid(), SecurityUtils.getCurrentOrganizationId())
+        Quote existingQuote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(dto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + dto.getUuid()));
         
-        quote.setDocumentNumber(dto.getDocumentNumber());
-        quote.setContractorCode(dto.getContractorCode());
-        quote.setContractorName(dto.getContractorName());
-        quote.setProductCode(dto.getProductCode());
-        quote.setProductName(dto.getProductName());
-        quote.setMinQuantity(dto.getMinQuantity());
-        quote.setTotalQuantity(dto.getTotalQuantity());
-        quote.setTotalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null);
+        Quote quote = quoteMapper.updateEntity(existingQuote, dto);
 
         updateQuoteMaterials(quote, dto.getMaterials());
         updateQuoteProductionActivities(quote, dto.getProductionActivities());
@@ -95,8 +87,8 @@ public class QuoteCrudService {
         quote.getProductionActivities().addAll(activities);
     }
 
-    public Page<QuoteListDto> getQuotes(String search, Pageable pageable) {
-        Page<Quote> quotePage = quoteRepository.findBySearchAndOrganization(search, SecurityUtils.getCurrentOrganizationId(), pageable);
+    public Page<QuoteListDto> getQuotes(String search, UUID createdBy, Pageable pageable) {
+        Page<Quote> quotePage = quoteRepository.findBySearchAndOrganizationAndCreatedBy(search, SecurityUtils.getCurrentOrganizationId(), createdBy, pageable);
         List<QuoteListDto> dtos = quotePage.getContent().stream()
                 .map(quoteMapper::toListDto)
                 .collect(Collectors.toList());

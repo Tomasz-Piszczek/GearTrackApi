@@ -2,7 +2,6 @@ package com.example.geartrackapi.service;
 
 import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
 import com.example.geartrackapi.controller.auth.dto.LoginDto;
-import com.example.geartrackapi.controller.auth.dto.RegisterDto;
 import com.example.geartrackapi.dao.model.User;
 import com.example.geartrackapi.dao.repository.UserRepository;
 import com.example.geartrackapi.security.JwtUtils;
@@ -34,24 +33,6 @@ public class AuthService {
     @Value("${app.google.client-id}")
     private String googleClientId;
     
-    public AuthResponseDto register(RegisterDto registerDto) {
-        User user = new User();
-        user.setEmail(registerDto.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(registerDto.getPassword()));
-        user.setUserId(UUID.randomUUID());
-        user.setEmailVerified(true);
-        
-        User savedUser = userRepository.save(user);
-        String token = jwtUtils.generateToken(savedUser.getEmail(), savedUser.getId());
-        String refreshToken = jwtUtils.generateRefreshToken(savedUser.getEmail(), savedUser.getId());
-
-        return AuthResponseDto.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .email(savedUser.getEmail())
-                .userId(savedUser.getId())
-                .build();
-    }
     
     public AuthResponseDto login(LoginDto loginDto) {
         User user = userRepository.findByEmailAndHiddenFalse(loginDto.getEmail())
@@ -94,11 +75,12 @@ public class AuthService {
                         .orElse(null);
                 
                 if (user == null) {
-                    user = new User();
-                    user.setEmail(email);
-                    user.setUserId(UUID.randomUUID());
-                    user.setEmailVerified(true);
-                    user.setPasswordHash("GOOGLE_OAUTH2_USER");
+                    user = User.builder()
+                            .email(email)
+                            .userId(UUID.randomUUID())
+                            .emailVerified(true)
+                            .passwordHash("GOOGLE_OAUTH2_USER")
+                            .build();
                     user = userRepository.save(user);
                 }
                 

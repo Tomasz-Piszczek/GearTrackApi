@@ -39,11 +39,12 @@ public class QuoteController {
     public ResponseEntity<Page<QuoteListDto>> getQuotes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID createdBy) {
         
-        log.info("[getQuotes] Getting quotes with page: {}, size: {}, search: {}", page, size, search);
+        log.info("[getQuotes] Getting quotes with page: {}, size: {}, search: {}, createdBy: {}", page, size, search, createdBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return ResponseEntity.ok(quoteCrudService.getQuotes(search, pageable));
+        return ResponseEntity.ok(quoteCrudService.getQuotes(search, createdBy, pageable));
     }
 
     @GetMapping("/{id}")

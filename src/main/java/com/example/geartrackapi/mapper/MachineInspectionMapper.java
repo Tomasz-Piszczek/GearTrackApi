@@ -1,6 +1,7 @@
 package com.example.geartrackapi.mapper;
 
 import com.example.geartrackapi.controller.machine.dto.MachineInspectionDto;
+import com.example.geartrackapi.controller.machine.dto.CreateMachineInspectionDto;
 import com.example.geartrackapi.dao.model.Machine;
 import com.example.geartrackapi.dao.model.MachineInspection;
 import com.example.geartrackapi.dao.repository.MachineRepository;
@@ -29,6 +30,17 @@ public class MachineInspectionMapper {
                 .status(inspection.getStatus())
                 .createdAt(inspection.getCreatedAt().toLocalDate())
                 .updatedAt(inspection.getUpdatedAt().toLocalDate())
+                .build();
+    }
+    
+    public MachineInspection updateEntity(MachineInspection existing, CreateMachineInspectionDto dto) {
+        return MachineInspection.builder()
+                .id(existing.getId())
+                .machineId(dto.getMachineId() != null ? dto.getMachineId() : existing.getMachineId())
+                .inspectionDate(dto.getInspectionDate())
+                .notes(dto.getNotes())
+                .status(dto.getStatus() != null ? dto.getStatus() : existing.getStatus())
+                .organizationId(existing.getOrganizationId())
                 .build();
     }
 }

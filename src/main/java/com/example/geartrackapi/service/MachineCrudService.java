@@ -37,15 +37,14 @@ public class MachineCrudService {
     
     public MachineDto createMachine(MachineDto machineDto) {
         Machine machine = machineMapper.toEntity(machineDto);
-        machine.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return machineMapper.toDto(machineRepository.save(machine));
     }
     
     public MachineDto updateMachine(MachineDto machineDto) {
-        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
+        Machine existing = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineDto.getUuid()));
-        machineMapper.updateEntity(machine, machineDto);
-        return machineMapper.toDto(machineRepository.save(machine));
+        Machine updated = machineMapper.updateEntity(existing, machineDto);
+        return machineMapper.toDto(machineRepository.save(updated));
     }
     
     public void deleteMachine(UUID id) {

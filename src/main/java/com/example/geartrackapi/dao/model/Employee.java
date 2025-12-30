@@ -25,6 +25,9 @@ public class Employee extends OrganizationalEntity {
     @Column(name = "hourly_rate", precision = 10, scale = 2)
     private BigDecimal hourlyRate;
     
+    @Column(name = "bi_employee_id")
+    private Integer biEmployeeId;
+    
     @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Machine> machines;
     

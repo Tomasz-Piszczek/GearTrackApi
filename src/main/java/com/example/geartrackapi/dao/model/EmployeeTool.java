@@ -22,8 +22,9 @@ public class EmployeeTool extends OrganizationalEntity {
     @Column(name = "tool_id", nullable = false)
     private UUID toolId;
     
+    @Builder.Default
     @Column(name = "assigned_at", nullable = false)
-    private LocalDate assignedAt;
+    private LocalDate assignedAt = LocalDate.now();
     
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

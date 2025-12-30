@@ -4,10 +4,12 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @Builder
 public class PayrollRecordDto {
+    private String payrollRecordId;
     private String employeeId;
     private String employeeName;
     private BigDecimal hourlyRate;
@@ -18,4 +20,5 @@ public class PayrollRecordDto {
     private String deductionsNote;
     private BigDecimal bankTransfer;
     private BigDecimal cashAmount;
+    private List<PayrollDeductionDto> payrollDeductions;
 }

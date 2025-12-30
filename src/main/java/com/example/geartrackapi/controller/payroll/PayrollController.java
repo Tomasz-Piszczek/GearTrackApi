@@ -33,7 +33,8 @@ public class PayrollController {
             @PathVariable Integer month,
             @RequestBody List<PayrollRecordDto> records) {
         log.info("[savePayrollRecords] Saving {} payroll records for {}/{}", records.size(), year, month);
-        payrollService.savePayrollRecords(records, year, month);
+        payrollService.createOrUpdatePayrollRecords(records, year, month);
         return ResponseEntity.ok().build();
     }
+    
 }

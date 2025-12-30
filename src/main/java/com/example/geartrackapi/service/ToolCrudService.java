@@ -41,15 +41,14 @@ public class ToolCrudService {
     
     public ToolDto createTool(ToolDto toolDto) {
         Tool tool = toolMapper.toEntity(toolDto);
-        tool.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return toolMapper.toDto(toolRepository.save(tool));
     }
     
     public ToolDto updateTool(ToolDto toolDto) {
-        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
+        Tool existing = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolDto.getUuid()));
-        toolMapper.updateEntity(tool, toolDto);
-        return toolMapper.toDto(toolRepository.save(tool));
+        Tool updated = toolMapper.updateEntity(existing, toolDto);
+        return toolMapper.toDto(toolRepository.save(updated));
     }
     
     public void deleteTool(UUID id) {
@@ -74,8 +73,6 @@ public class ToolCrudService {
         }
 
         EmployeeTool employeeTool = employeeToolMapper.toEntity(assignDto);
-        employeeTool.setAssignedAt(assignDto.getAssignedAt() != null ? assignDto.getAssignedAt() : LocalDate.now());
-        employeeTool.setOrganizationId(SecurityUtils.getCurrentOrganizationId());
         return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
     }
     

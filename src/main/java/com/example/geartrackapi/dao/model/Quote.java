@@ -43,6 +43,9 @@ public class Quote extends OrganizationalEntity {
     @Column(name = "total_price", precision = 10, scale = 2)
     private BigDecimal totalPrice;
     
+    @Column(name = "user_id")
+    private UUID userId;
+    
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
     private List<QuoteMaterial> materials;
