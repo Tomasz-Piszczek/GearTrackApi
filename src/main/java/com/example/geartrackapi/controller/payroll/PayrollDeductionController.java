@@ -42,12 +42,11 @@ public class PayrollDeductionController {
     }
     
     @GetMapping("/employee/{employeeId}")
-    public ResponseEntity<Page<PayrollDeductionDto>> getEmployeeDeductions(
+    public ResponseEntity<List<PayrollDeductionDto>> getEmployeeDeductions(
             @PathVariable UUID employeeId,
-            @RequestParam(required = false) String category,
-            Pageable pageable) {
+            @RequestParam(required = false) String category) {
         log.info("[getEmployeeDeductions] Getting deductions for employee: {}, category: {}", employeeId, category);
-        return ResponseEntity.ok(payrollDeductionService.getEmployeeDeductions(employeeId, category, pageable));
+        return ResponseEntity.ok(payrollDeductionService.getEmployeeDeductions(employeeId, category));
     }
     
     @GetMapping("/categories")

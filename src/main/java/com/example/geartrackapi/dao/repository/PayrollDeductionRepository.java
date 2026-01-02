@@ -20,15 +20,15 @@ public interface PayrollDeductionRepository extends JpaRepository<PayrollDeducti
            "JOIN pd.payrollRecord pr " +
            "JOIN pr.employee e " +
            "WHERE e.id = :employeeId AND pd.organizationId = :organizationId AND pd.hidden = false " +
-           "ORDER BY pd.createdAt DESC")
-    Page<PayrollDeduction> findByEmployeeIdAndOrganizationIdAndHiddenFalseOrderByCreatedAtDesc(@Param("employeeId") UUID employeeId, @Param("organizationId") UUID organizationId, Pageable pageable);
+           "ORDER BY pd.category ASC, pd.createdAt DESC")
+    List<PayrollDeduction> findByEmployeeIdAndOrganizationIdAndHiddenFalseOrderByCategoryAscCreatedAtDesc(@Param("employeeId") UUID employeeId, @Param("organizationId") UUID organizationId);
     
     @Query("SELECT pd FROM PayrollDeduction pd " +
            "JOIN pd.payrollRecord pr " +
            "JOIN pr.employee e " +
            "WHERE e.id = :employeeId AND LOWER(pd.category) LIKE LOWER(CONCAT('%', :category, '%')) AND pd.organizationId = :organizationId AND pd.hidden = false " +
-           "ORDER BY pd.createdAt DESC")
-    Page<PayrollDeduction> findByEmployeeIdAndCategoryContainingIgnoreCaseAndOrganizationIdAndHiddenFalseOrderByCreatedAtDesc(@Param("employeeId") UUID employeeId, @Param("category") String category, @Param("organizationId") UUID organizationId, Pageable pageable);
+           "ORDER BY pd.category ASC, pd.createdAt DESC")
+    List<PayrollDeduction> findByEmployeeIdAndCategoryContainingIgnoreCaseAndOrganizationIdAndHiddenFalseOrderByCategoryAscCreatedAtDesc(@Param("employeeId") UUID employeeId, @Param("category") String category, @Param("organizationId") UUID organizationId);
     
     @Query("SELECT DISTINCT pd.category FROM PayrollDeduction pd " +
            "WHERE pd.organizationId = :organizationId AND pd.hidden = false " +

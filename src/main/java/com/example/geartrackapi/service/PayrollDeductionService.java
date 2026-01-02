@@ -47,21 +47,18 @@ public class PayrollDeductionService {
         payrollDeductionRepository.save(deduction);
     }
     //todo fix organization
-    public Page<PayrollDeductionDto> getEmployeeDeductions(UUID employeeId, String category, Pageable pageable) {
-        Page<PayrollDeduction> deductionsPage;
+    public List<PayrollDeductionDto> getEmployeeDeductions(UUID employeeId, String category) {
+        List<PayrollDeduction> deductions;
         
         if (category != null && !category.trim().isEmpty()) {
-            deductionsPage = payrollDeductionRepository.findByEmployeeIdAndCategoryContainingIgnoreCaseAndOrganizationIdAndHiddenFalseOrderByCreatedAtDesc(employeeId, category.toUpperCase(),UUID.fromString("e0318ab7-3ca7-4787-8165-f14dc5fe465d"),pageable);
+            deductions = payrollDeductionRepository.findByEmployeeIdAndCategoryContainingIgnoreCaseAndOrganizationIdAndHiddenFalseOrderByCategoryAscCreatedAtDesc(employeeId, category.toUpperCase(), UUID.fromString("e0318ab7-3ca7-4787-8165-f14dc5fe465d"));
         } else {
-            deductionsPage = payrollDeductionRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalseOrderByCreatedAtDesc(employeeId,UUID.fromString("e0318ab7-3ca7-4787-8165-f14dc5fe465d"), pageable);
+            deductions = payrollDeductionRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalseOrderByCategoryAscCreatedAtDesc(employeeId, UUID.fromString("e0318ab7-3ca7-4787-8165-f14dc5fe465d"));
         }
         
-        List<PayrollDeductionDto> deductionDtos = deductionsPage.getContent()
-                .stream()
+        return deductions.stream()
                 .map(payrollDeductionMapper::toDto)
                 .collect(Collectors.toList());
-        
-        return new PageImpl<>(deductionDtos, pageable, deductionsPage.getTotalElements());
     }
     
     public List<String> getDistinctCategories() {
