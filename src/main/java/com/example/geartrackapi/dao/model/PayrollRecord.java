@@ -12,7 +12,7 @@ import java.util.UUID;
 @Table(name = "payroll_records")
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
+@SuperBuilder()
 @NoArgsConstructor
 @AllArgsConstructor
 public class PayrollRecord extends OrganizationalEntity {

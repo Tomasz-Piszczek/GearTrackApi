@@ -118,5 +118,20 @@ public class PayrollService {
                 .map(deduction -> deduction.getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-    
+
+    public List<String> getAllCategories() {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        return payrollDeductionRepository.findDistinctCategoriesByOrganizationId(organizationId);
+    }
+
+    @Transactional
+    public void deleteCategory(String category) {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        List<PayrollDeduction> deductionsToDelete = payrollDeductionRepository
+                .findByCategoryAndOrganizationIdAndHiddenFalse(category, organizationId);
+
+        deductionsToDelete.forEach(deduction -> deduction.setHidden(true));
+        payrollDeductionRepository.saveAll(deductionsToDelete);
+    }
+
 }

@@ -36,5 +36,18 @@ public class PayrollController {
         payrollService.createOrUpdatePayrollRecords(records, year, month);
         return ResponseEntity.ok().build();
     }
-    
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getCategories() {
+        log.info("[getCategories] Getting all payroll deduction categories");
+        return ResponseEntity.ok(payrollService.getAllCategories());
+    }
+
+    @DeleteMapping("/categories/{category}")
+    public ResponseEntity<Void> deleteCategory(@PathVariable String category) {
+        log.info("[deleteCategory] Deleting category: {}", category);
+        payrollService.deleteCategory(category);
+        return ResponseEntity.ok().build();
+    }
+
 }
