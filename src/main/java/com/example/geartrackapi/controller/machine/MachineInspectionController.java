@@ -42,10 +42,10 @@ public class MachineInspectionController {
         return ResponseEntity.ok(machineInspectionService.getInspectionHistoryByMachineId(machineId));
     }
     
-    @PostMapping
-    public ResponseEntity<MachineInspectionDto> createInspection(@RequestBody CreateMachineInspectionDto createDto) {
-        log.info("Creating new machine inspection for machine {}", createDto.getMachineId());
-        return ResponseEntity.ok(machineInspectionService.createInspection(createDto));
+    @PostMapping("/{machineId}")
+    public ResponseEntity<MachineInspectionDto> createInspection(@PathVariable UUID machineId, @RequestBody CreateMachineInspectionDto createDto) {
+        log.info("Creating new machine inspection for machine {}", machineId);
+        return ResponseEntity.ok(machineInspectionService.createInspection(machineId, createDto));
     }
     
     @PutMapping("/{inspectionId}")

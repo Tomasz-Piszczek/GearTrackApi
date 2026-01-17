@@ -1,6 +1,5 @@
 package com.example.geartrackapi.service;
 
-import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.dao.model.Machine;
 import com.example.geartrackapi.dao.repository.MachineRepository;
@@ -54,10 +53,10 @@ public class MachineCrudService {
         machineRepository.save(machine);
     }
     
-    public MachineDto assignMachineToEmployee(AssignMachineDto assignDto) {
-        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(assignDto.getMachineId(), SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + assignDto.getMachineId()));
-        machine.setEmployeeId(assignDto.getEmployeeId());
+    public MachineDto assignMachineToEmployee(UUID machineId, UUID employeeId) {
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineId, SecurityUtils.getCurrentOrganizationId())
+                .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineId));
+        machine.setEmployeeId(employeeId);
         return machineMapper.toDto(machineRepository.save(machine));
     }
 }

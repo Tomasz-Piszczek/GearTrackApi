@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 @Builder
 public class PayrollDeductionDto {
     private String id;
-    private String payrollRecordId;
     private String category;
     private String note;
     private BigDecimal amount;

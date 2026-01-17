@@ -44,16 +44,16 @@ public class ToolController {
         toolCrudService.deleteTool(id);
     }
     
-    @PostMapping("/assign")
-    public AssignToolDto assignToolToEmployee(@RequestBody AssignToolDto assignDto) {
-        log.info("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        return toolCrudService.assignToolToEmployee(assignDto);
+    @PostMapping("/assign/{toolId}/{employeeId}")
+    public AssignToolDto assignToolToEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId, @RequestBody AssignToolDto assignDto) {
+        log.info("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", toolId, employeeId);
+        return toolCrudService.assignToolToEmployee(toolId, employeeId, assignDto);
     }
     
-    @DeleteMapping("/unassign")
-    public void unassignToolFromEmployee(@RequestBody AssignToolDto assignDto) {
-        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        toolCrudService.unassignToolFromEmployee(assignDto);
+    @DeleteMapping("/unassign/{toolId}/{employeeId}")
+    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId) {
+        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", toolId, employeeId);
+        toolCrudService.unassignToolFromEmployee(toolId, employeeId);
     }
     
     @GetMapping("/{toolId}/employees")

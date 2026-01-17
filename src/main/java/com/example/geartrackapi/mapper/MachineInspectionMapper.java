@@ -36,7 +36,6 @@ public class MachineInspectionMapper {
     public MachineInspection updateEntity(MachineInspection existing, CreateMachineInspectionDto dto) {
         return MachineInspection.builder()
                 .id(existing.getId())
-                .machineId(dto.getMachineId() != null ? dto.getMachineId() : existing.getMachineId())
                 .inspectionDate(dto.getInspectionDate())
                 .notes(dto.getNotes())
                 .status(dto.getStatus() != null ? dto.getStatus() : existing.getStatus())

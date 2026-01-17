@@ -11,16 +11,15 @@ public class PayrollDeductionMapper {
     public PayrollDeductionDto toDto(PayrollDeduction entity) {
         return PayrollDeductionDto.builder()
                 .id(entity.getId().toString())
-                .payrollRecordId(entity.getPayrollRecordId().toString())
                 .category(entity.getCategory())
                 .note(entity.getNote())
                 .amount(entity.getAmount())
                 .build();
     }
     
-    public PayrollDeduction toEntity(PayrollDeductionDto dto) {
+    public PayrollDeduction toEntity(String payrollRecordId, PayrollDeductionDto dto) {
         return PayrollDeduction.builder()
-                .payrollRecordId(java.util.UUID.fromString(dto.getPayrollRecordId()))
+                .payrollRecordId(java.util.UUID.fromString(payrollRecordId))
                 .category(dto.getCategory())
                 .note(dto.getNote())
                 .amount(dto.getAmount())

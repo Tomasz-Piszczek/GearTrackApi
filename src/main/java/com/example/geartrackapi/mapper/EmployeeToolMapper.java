@@ -5,14 +5,14 @@ import com.example.geartrackapi.dao.model.EmployeeTool;
 import com.example.geartrackapi.security.SecurityUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class EmployeeToolMapper {
     
     public AssignToolDto toAssignToolDto(EmployeeTool employeeTool) {
         return AssignToolDto.builder()
                 .uuid(employeeTool.getId())
-                .employeeId(employeeTool.getEmployeeId())
-                .toolId(employeeTool.getToolId())
                 .quantity(employeeTool.getQuantity())
                 .condition(employeeTool.getCondition())
                 .assignedAt(employeeTool.getAssignedAt())
@@ -24,10 +24,10 @@ public class EmployeeToolMapper {
                 .build();
     }
     
-    public EmployeeTool toEntity(AssignToolDto dto) {
+    public EmployeeTool toEntity(UUID toolId, UUID employeeId, AssignToolDto dto) {
         return EmployeeTool.builder()
-                .employeeId(dto.getEmployeeId())
-                .toolId(dto.getToolId())
+                .employeeId(employeeId)
+                .toolId(toolId)
                 .quantity(dto.getQuantity())
                 .condition(dto.getCondition())
                 .organizationId(SecurityUtils.getCurrentOrganizationId())

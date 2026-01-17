@@ -56,7 +56,6 @@ public class PayrollMapper {
     private PayrollDeductionDto payrollDeductionToDto(PayrollDeduction deduction) {
         return PayrollDeductionDto.builder()
                 .id(deduction.getId().toString())
-                .payrollRecordId(deduction.getPayrollRecordId().toString())
                 .category(deduction.getCategory())
                 .note(deduction.getNote())
                 .amount(deduction.getAmount())

@@ -49,13 +49,13 @@ public class MachineInspectionService {
         return new PageImpl<>(inspectionDtos, pageable, inspectionPage.getTotalElements());
     }
     
-    public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {
-        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(createDto.getMachineId(), SecurityUtils.getCurrentOrganizationId())
+    public MachineInspectionDto createInspection(UUID machineId, CreateMachineInspectionDto createDto) {
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Machine not found"));
         
         MachineInspection inspection = MachineInspection.builder()
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
-                .machineId(createDto.getMachineId())
+                .machineId(machineId)
                 .inspectionDate(createDto.getInspectionDate())
                 .notes(createDto.getNotes())
                 .status(createDto.getStatus() != null ? createDto.getStatus() : "SCHEDULED")
