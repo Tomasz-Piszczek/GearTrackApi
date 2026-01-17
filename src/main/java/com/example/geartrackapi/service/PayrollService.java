@@ -1,5 +1,6 @@
 package com.example.geartrackapi.service;
 
+import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.model.PayrollRecord;
@@ -132,6 +133,16 @@ public class PayrollService {
 
         deductionsToDelete.forEach(deduction -> deduction.setHidden(true));
         payrollDeductionRepository.saveAll(deductionsToDelete);
+    }
+
+    public List<PayrollDeductionDto> getEmployeeDeductions(UUID employeeId) {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        List<PayrollDeduction> deductions = payrollDeductionRepository
+                .findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId);
+
+        return deductions.stream()
+                .map(payrollDeductionMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }

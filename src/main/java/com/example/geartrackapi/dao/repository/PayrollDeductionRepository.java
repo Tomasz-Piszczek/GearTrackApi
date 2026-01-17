@@ -20,4 +20,7 @@ public interface PayrollDeductionRepository extends JpaRepository<PayrollDeducti
     List<String> findDistinctCategoriesByOrganizationId(@Param("organizationId") UUID organizationId);
 
     List<PayrollDeduction> findByCategoryAndOrganizationIdAndHiddenFalse(String category, UUID organizationId);
+
+    @Query("SELECT pd FROM PayrollDeduction pd JOIN pd.payrollRecord pr WHERE pr.employeeId = :employeeId AND pd.organizationId = :organizationId AND pd.hidden = false")
+    List<PayrollDeduction> findByEmployeeIdAndOrganizationIdAndHiddenFalse(@Param("employeeId") UUID employeeId, @Param("organizationId") UUID organizationId);
 }

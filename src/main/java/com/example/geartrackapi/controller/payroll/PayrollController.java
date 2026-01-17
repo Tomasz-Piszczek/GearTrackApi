@@ -1,5 +1,6 @@
 package com.example.geartrackapi.controller.payroll;
 
+import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.service.PayrollService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -48,6 +50,12 @@ public class PayrollController {
         log.info("[deleteCategory] Deleting category: {}", category);
         payrollService.deleteCategory(category);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/employees/{employeeId}/deductions")
+    public ResponseEntity<List<PayrollDeductionDto>> getEmployeeDeductions(@PathVariable UUID employeeId) {
+        log.info("[getEmployeeDeductions] Getting deductions for employee: {}", employeeId);
+        return ResponseEntity.ok(payrollService.getEmployeeDeductions(employeeId));
     }
 
 }
