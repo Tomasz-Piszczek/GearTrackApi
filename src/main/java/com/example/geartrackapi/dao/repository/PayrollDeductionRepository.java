@@ -9,9 +9,8 @@ import java.util.UUID;
 
 @Repository
 public interface PayrollDeductionRepository extends JpaRepository<PayrollDeduction, UUID> {
-    
-    List<PayrollDeduction> findByPayrollRecordIdAndHiddenFalse(UUID payrollRecordId);
-    
 
-    void deleteByPayrollRecordIdAndOrganizationId(UUID payrollRecordId, UUID organizationId);
+    List<PayrollDeduction> findByPayrollRecordIdAndHiddenFalse(UUID payrollRecordId);
+
+    List<PayrollDeduction> findByPayrollRecordIdAndOrganizationIdAndHiddenFalse(UUID payrollRecordId, UUID organizationId);
 }

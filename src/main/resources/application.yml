@@ -40,19 +40,12 @@ aws:
   secret-key: ${AWS_SECRET_KEY}
 
 sqs:
-  local-uri: ${SQS_LOCAL_URI:}
-  launch-localstack: ${SQS_LAUNCH_LOCALSTACK:false}
-  rate: ${SQS_POLLING_RATE:10000}
+  local-uri: ""
+  launch-localstack: false
+  rate: 10000
   limits:
-    maxNumberOfMessages: ${SQS_MAX_NUMBER_OF_MESSAGES:10}
-    maxBatchesPerRun: ${SQS_MAX_BATCHES_PER_RUN:5}
+    maxNumberOfMessages: 10
+    maxBatchesPerRun: 5
   url:
     read:
-      employeeChangeQueue: ${SQS_EMPLOYEE_CHANGE_QUEUE_READ_URL}
-logging:
-  level:
-    com.example.geartrackapi: INFO
-    org.springframework.security: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+      employeeChangeQueue: ${SQS_EMPLOYEE_CHANGE_QUEUE_READ_URL:https://sqs.eu-central-1.amazonaws.com/886360753429/employeeChangeQueue}

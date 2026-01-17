@@ -8,10 +8,12 @@ import com.example.geartrackapi.dao.repository.EmployeeRepository;
 import com.example.geartrackapi.dao.repository.PayrollRecordRepository;
 import com.example.geartrackapi.dao.repository.PayrollDeductionRepository;
 import com.example.geartrackapi.mapper.PayrollMapper;
+import com.example.geartrackapi.mapper.PayrollDeductionMapper;
 import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,6 +30,7 @@ public class PayrollService {
     private final EmployeeRepository employeeRepository;
     private final PayrollMapper payrollMapper;
     private final PayrollDeductionRepository payrollDeductionRepository;
+    private final PayrollDeductionMapper payrollDeductionMapper;
     
     public List<PayrollRecordDto> getPayrollRecords(Integer year, Integer month) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
@@ -59,31 +62,55 @@ public class PayrollService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional
     public void createOrUpdatePayrollRecords(List<PayrollRecordDto> records, Integer year, Integer month) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
-        
-        List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
-        Map<UUID, PayrollRecord> existingMap = existingRecords.stream()
-                .collect(Collectors.toMap(PayrollRecord::getEmployeeId, Function.identity()));
-        
-        List<PayrollRecord> entities = records.stream()
-                .map(dto -> {
-                    UUID employeeId = UUID.fromString(dto.getEmployeeId());
-                    PayrollRecord existing = existingMap.get(employeeId);
-                    
-                    if (existing != null) {
-                        PayrollRecord updated = payrollMapper.toEntity(dto, year, month);
-                        updated.setId(existing.getId());
-                        return updated;
-                    } else {
-                        return payrollMapper.toEntity(dto, year, month);
-                    }
-                })
-                .collect(Collectors.toList());
-        
-        payrollRecordRepository.saveAll(entities);
+
+        for (PayrollRecordDto dto : records) {
+            if (dto.getPayrollRecordId() != null) {
+                updatePayrollRecord(dto, organizationId);
+            } else {
+                createPayrollRecord(dto, year, month, organizationId);
+            }
+        }
     }
-    
+
+    private void createPayrollRecord(PayrollRecordDto dto, Integer year, Integer month, UUID organizationId) {
+        PayrollRecord payrollRecord = payrollMapper.toEntity(dto, year, month);
+        PayrollRecord savedRecord = payrollRecordRepository.save(payrollRecord);
+        List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
+                .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
+                .collect(Collectors.toList());
+
+        payrollDeductionRepository.saveAll(deductions);
+    }
+
+    private void updatePayrollRecord(PayrollRecordDto dto, UUID organizationId) {
+        PayrollRecord existingRecord = payrollRecordRepository.findById(UUID.fromString(dto.getPayrollRecordId()))
+                .orElseThrow();
+
+        existingRecord.setHourlyRate(dto.getHourlyRate());
+        existingRecord.setHoursWorked(dto.getHoursWorked());
+        existingRecord.setBonus(dto.getBonus());
+        existingRecord.setSickLeavePay(dto.getSickLeavePay());
+        existingRecord.setDeductions(dto.getDeductions());
+        existingRecord.setDeductionsNote(dto.getDeductionsNote());
+        existingRecord.setBankTransfer(dto.getBankTransfer());
+        existingRecord.setCashAmount(dto.getCashAmount());
+
+        PayrollRecord savedRecord = payrollRecordRepository.save(existingRecord);
+
+        List<PayrollDeduction> existingDeductions = payrollDeductionRepository.findByPayrollRecordIdAndOrganizationIdAndHiddenFalse(savedRecord.getId(), organizationId);
+        existingDeductions.forEach(deduction -> deduction.setHidden(true));
+        payrollDeductionRepository.saveAll(existingDeductions);
+
+        List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
+                .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
+                .collect(Collectors.toList());
+
+        payrollDeductionRepository.saveAll(deductions);
+    }
+
     private BigDecimal calculateTotalDeductions(UUID payrollRecordId) {
 
         return payrollDeductionRepository.findByPayrollRecordIdAndHiddenFalse(payrollRecordId)

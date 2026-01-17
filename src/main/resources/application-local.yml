@@ -49,13 +49,5 @@ localstack:
   sqs:
     employeeChangeQueue: http://sqs.us-west-2.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
 
-logging:
-  level:
-    com.example.geartrackapi: INFO
-    org.springframework.security: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
 server:
   port: 8080
