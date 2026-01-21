@@ -61,16 +61,16 @@ public class OrganizationController {
     
     @PostMapping("/assign-user")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> assignUserToOrganization(@RequestBody AssignUserRequest request) {
+    public ResponseEntity<UserDto> assignUserToOrganization(@RequestBody AssignUserRequest request) {
         User user = organizationService.assignUserToOrganization(request.getUserEmail(), request.getOrganizationId());
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(convertUserToDto(user));
     }
     
     @PostMapping("/remove-user/{userEmail}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<User> removeUserFromOrganization(@PathVariable String userEmail) {
+    public ResponseEntity<UserDto> removeUserFromOrganization(@PathVariable String userEmail) {
         User user = organizationService.removeUserFromOrganization(userEmail);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(convertUserToDto(user));
     }
     
     private OrganizationDto convertToDto(Organization organization) {
