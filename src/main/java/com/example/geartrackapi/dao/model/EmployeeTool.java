@@ -1,9 +1,8 @@
 package com.example.geartrackapi.dao.model;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -12,7 +11,10 @@ import java.util.UUID;
 @Table(name = "employee_tools")
 @Getter
 @Setter
-public class EmployeeTool extends BaseEntity {
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmployeeTool extends OrganizationalEntity {
     
     @Column(name = "employee_id", nullable = false)
     private UUID employeeId;
@@ -20,8 +22,9 @@ public class EmployeeTool extends BaseEntity {
     @Column(name = "tool_id", nullable = false)
     private UUID toolId;
     
+    @Builder.Default
     @Column(name = "assigned_at", nullable = false)
-    private LocalDate assignedAt;
+    private LocalDate assignedAt = LocalDate.now();
     
     @Column(name = "quantity", nullable = false)
     private Integer quantity;

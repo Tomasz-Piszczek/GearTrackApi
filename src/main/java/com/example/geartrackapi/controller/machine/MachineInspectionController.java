@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/machine-inspections")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class MachineInspectionController {
     
     private final MachineInspectionService machineInspectionService;
@@ -40,10 +42,10 @@ public class MachineInspectionController {
         return ResponseEntity.ok(machineInspectionService.getInspectionHistoryByMachineId(machineId));
     }
     
-    @PostMapping
-    public ResponseEntity<MachineInspectionDto> createInspection(@RequestBody CreateMachineInspectionDto createDto) {
-        log.info("Creating new machine inspection for machine {}", createDto.getMachineId());
-        return ResponseEntity.ok(machineInspectionService.createInspection(createDto));
+    @PostMapping("/{machineId}")
+    public ResponseEntity<MachineInspectionDto> createInspection(@PathVariable UUID machineId, @RequestBody CreateMachineInspectionDto createDto) {
+        log.info("Creating new machine inspection for machine {}", machineId);
+        return ResponseEntity.ok(machineInspectionService.createInspection(machineId, createDto));
     }
     
     @PutMapping("/{inspectionId}")

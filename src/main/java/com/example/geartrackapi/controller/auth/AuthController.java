@@ -2,7 +2,6 @@ package com.example.geartrackapi.controller.auth;
 
 import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
 import com.example.geartrackapi.controller.auth.dto.LoginDto;
-import com.example.geartrackapi.controller.auth.dto.RegisterDto;
 import com.example.geartrackapi.service.AuthService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     
     private final AuthService authService;
-    
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponseDto> register(@RequestBody RegisterDto registerDto) {
-        log.info("[register] User registration attempt for email: {}", registerDto.getEmail());
-        return ResponseEntity.ok(authService.register(registerDto));
-    }
-    
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
         log.info("[login] User login attempt for email: {}", loginDto.getEmail());
@@ -37,11 +30,21 @@ public class AuthController {
         return ResponseEntity.ok(authService.handleGoogleLogin(googleTokenDto.getIdToken()));
     }
     
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDto> refreshToken(@RequestBody RefreshTokenDto refreshTokenDto) {
+        log.info("[refreshToken] Token refresh attempt");
+        return ResponseEntity.ok(authService.refreshToken(refreshTokenDto.getRefreshToken()));
+    }
+    
     @Getter
     @Setter
     public static class GoogleTokenDto {
         private String idToken;
-
-
+    }
+    
+    @Getter
+    @Setter
+    public static class RefreshTokenDto {
+        private String refreshToken;
     }
 }

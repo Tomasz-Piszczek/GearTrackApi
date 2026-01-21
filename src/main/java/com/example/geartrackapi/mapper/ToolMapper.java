@@ -2,6 +2,7 @@ package com.example.geartrackapi.mapper;
 
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
 import com.example.geartrackapi.dao.model.Tool;
+import com.example.geartrackapi.security.SecurityUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,18 +30,23 @@ public class ToolMapper {
     }
     
     public Tool toEntity(ToolDto dto) {
-        Tool tool = new Tool();
-        tool.setName(dto.getName());
-        tool.setFactoryNumber(dto.getFactoryNumber());
-        tool.setQuantity(dto.getQuantity());
-        tool.setValue(dto.getValue());
-        return tool;
+        return Tool.builder()
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .quantity(dto.getQuantity())
+                .value(dto.getValue())
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
+                .build();
     }
     
-    public void updateEntity(Tool tool, ToolDto dto) {
-        tool.setName(dto.getName());
-        tool.setFactoryNumber(dto.getFactoryNumber());
-        tool.setQuantity(dto.getQuantity());
-        tool.setValue(dto.getValue());
+    public Tool updateEntity(Tool existing, ToolDto dto) {
+        return Tool.builder()
+                .id(existing.getId())
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .quantity(dto.getQuantity())
+                .value(dto.getValue())
+                .organizationId(existing.getOrganizationId())
+                .build();
     }
 }

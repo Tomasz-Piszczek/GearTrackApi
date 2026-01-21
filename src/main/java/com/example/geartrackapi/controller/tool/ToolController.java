@@ -5,6 +5,7 @@ import com.example.geartrackapi.controller.tool.dto.ToolDto;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ToolController {
     
     private final ToolCrudService toolCrudService;
@@ -42,16 +44,16 @@ public class ToolController {
         toolCrudService.deleteTool(id);
     }
     
-    @PostMapping("/assign")
-    public AssignToolDto assignToolToEmployee(@RequestBody AssignToolDto assignDto) {
-        log.info("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        return toolCrudService.assignToolToEmployee(assignDto);
+    @PostMapping("/assign/{toolId}/{employeeId}")
+    public AssignToolDto assignToolToEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId, @RequestBody AssignToolDto assignDto) {
+        log.info("[assignToolToEmployee] Assigning tool UUID: {} to employee UUID: {}", toolId, employeeId);
+        return toolCrudService.assignToolToEmployee(toolId, employeeId, assignDto);
     }
     
-    @DeleteMapping("/unassign")
-    public void unassignToolFromEmployee(@RequestBody AssignToolDto assignDto) {
-        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", assignDto.getToolId(), assignDto.getEmployeeId());
-        toolCrudService.unassignToolFromEmployee(assignDto);
+    @DeleteMapping("/unassign/{toolId}/{employeeId}")
+    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId) {
+        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", toolId, employeeId);
+        toolCrudService.unassignToolFromEmployee(toolId, employeeId);
     }
     
     @GetMapping("/{toolId}/employees")

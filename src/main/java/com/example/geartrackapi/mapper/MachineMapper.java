@@ -4,6 +4,7 @@ import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.dao.model.Machine;
 import com.example.geartrackapi.dao.model.MachineInspection;
 import com.example.geartrackapi.dao.repository.MachineInspectionRepository;
+import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -28,24 +29,20 @@ public class MachineMapper {
         long totalInspections = 0;
         
         try {
-            // Get next inspection (future inspections)
             Optional<MachineInspection> nextInspection = machineInspectionRepository
-                    .findNextInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
+                    .findNextInspectionByMachineId(machine.getOrganizationId(), machine.getId(), LocalDate.now());
             if (nextInspection.isPresent()) {
                 nextInspectionDate = nextInspection.get().getInspectionDate();
             }
             
-            // Get last inspection (past inspections)
             List<MachineInspection> lastInspections = machineInspectionRepository
-                    .findLastInspectionByMachineId(machine.getUserId(), machine.getId(), LocalDate.now());
+                    .findLastInspectionByMachineId(machine.getOrganizationId(), machine.getId(), LocalDate.now());
             if (!lastInspections.isEmpty()) {
                 lastInspectionDate = lastInspections.get(0).getInspectionDate();
             }
             
-            // Get total inspections count
-            totalInspections = machineInspectionRepository.countByUserIdAndMachineId(machine.getUserId(), machine.getId());
+            totalInspections = machineInspectionRepository.countByOrganizationIdAndMachineId(machine.getOrganizationId(), machine.getId());
         } catch (Exception e) {
-            // If inspection queries fail, continue with null values
         }
         
         return MachineDto.builder()
@@ -61,16 +58,21 @@ public class MachineMapper {
     }
     
     public Machine toEntity(MachineDto dto) {
-        Machine machine = new Machine();
-        machine.setName(dto.getName());
-        machine.setFactoryNumber(dto.getFactoryNumber());
-        machine.setEmployeeId(dto.getEmployeeId());
-        return machine;
+        return Machine.builder()
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .employeeId(dto.getEmployeeId())
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
+                .build();
     }
     
-    public void updateEntity(Machine machine, MachineDto dto) {
-        machine.setName(dto.getName());
-        machine.setFactoryNumber(dto.getFactoryNumber());
-        machine.setEmployeeId(dto.getEmployeeId());
+    public Machine updateEntity(Machine existing, MachineDto dto) {
+        return Machine.builder()
+                .id(existing.getId())
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .employeeId(dto.getEmployeeId())
+                .organizationId(existing.getOrganizationId())
+                .build();
     }
 }

@@ -9,6 +9,7 @@ import java.util.UUID;
 @Builder
 public class AuthResponseDto {
     private String token;
+    private String refreshToken;
     private String email;
     private UUID userId;
 }
