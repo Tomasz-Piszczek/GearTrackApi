@@ -1,7 +1,6 @@
 package com.example.geartrackapi.controller.machine;
 
 import org.springframework.data.domain.Page;
-import com.example.geartrackapi.controller.machine.dto.AssignMachineDto;
 import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.service.MachineCrudService;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +46,9 @@ public class MachineController {
         machineCrudService.deleteMachine(id);
     }
     
-    @PostMapping("/assign")
-    public MachineDto assignMachineToEmployee(@RequestBody AssignMachineDto assignDto) {
-        log.info("[assignMachineToEmployee] Assigning machine UUID: {} to employee UUID: {}", assignDto.getMachineId(), assignDto.getEmployeeId());
-        return machineCrudService.assignMachineToEmployee(assignDto);
+    @PostMapping("/assign/{machineId}/{employeeId}")
+    public MachineDto assignMachineToEmployee(@PathVariable UUID machineId, @PathVariable UUID employeeId) {
+        log.info("[assignMachineToEmployee] Assigning machine UUID: {} to employee UUID: {}", machineId, employeeId);
+        return machineCrudService.assignMachineToEmployee(machineId, employeeId);
     }
 }

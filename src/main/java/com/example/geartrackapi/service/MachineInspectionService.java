@@ -49,13 +49,13 @@ public class MachineInspectionService {
         return new PageImpl<>(inspectionDtos, pageable, inspectionPage.getTotalElements());
     }
     
-    public MachineInspectionDto createInspection(CreateMachineInspectionDto createDto) {
-        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(createDto.getMachineId(), SecurityUtils.getCurrentOrganizationId())
+    public MachineInspectionDto createInspection(UUID machineId, CreateMachineInspectionDto createDto) {
+        Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Machine not found"));
         
         MachineInspection inspection = MachineInspection.builder()
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
-                .machineId(createDto.getMachineId())
+                .machineId(machineId)
                 .inspectionDate(createDto.getInspectionDate())
                 .notes(createDto.getNotes())
                 .status(createDto.getStatus() != null ? createDto.getStatus() : "SCHEDULED")
@@ -64,14 +64,11 @@ public class MachineInspectionService {
     }
     
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
-        MachineInspection inspection = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
+        MachineInspection existing = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         
-        inspection.setMachineId(updateDto.getMachineId());
-        inspection.setInspectionDate(updateDto.getInspectionDate());
-        inspection.setNotes(updateDto.getNotes());
-        inspection.setStatus(updateDto.getStatus() != null ? updateDto.getStatus() : inspection.getStatus());
-        return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
+        MachineInspection updated = machineInspectionMapper.updateEntity(existing, updateDto);
+        return machineInspectionMapper.toDto(machineInspectionRepository.save(updated));
     }
     
     public void deleteInspection(UUID inspectionId) {

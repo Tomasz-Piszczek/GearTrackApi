@@ -4,6 +4,7 @@ import com.example.geartrackapi.controller.machine.dto.MachineDto;
 import com.example.geartrackapi.dao.model.Machine;
 import com.example.geartrackapi.dao.model.MachineInspection;
 import com.example.geartrackapi.dao.repository.MachineInspectionRepository;
+import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -57,16 +58,21 @@ public class MachineMapper {
     }
     
     public Machine toEntity(MachineDto dto) {
-        Machine machine = new Machine();
-        machine.setName(dto.getName());
-        machine.setFactoryNumber(dto.getFactoryNumber());
-        machine.setEmployeeId(dto.getEmployeeId());
-        return machine;
+        return Machine.builder()
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .employeeId(dto.getEmployeeId())
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
+                .build();
     }
     
-    public void updateEntity(Machine machine, MachineDto dto) {
-        machine.setName(dto.getName());
-        machine.setFactoryNumber(dto.getFactoryNumber());
-        machine.setEmployeeId(dto.getEmployeeId());
+    public Machine updateEntity(Machine existing, MachineDto dto) {
+        return Machine.builder()
+                .id(existing.getId())
+                .name(dto.getName())
+                .factoryNumber(dto.getFactoryNumber())
+                .employeeId(dto.getEmployeeId())
+                .organizationId(existing.getOrganizationId())
+                .build();
     }
 }

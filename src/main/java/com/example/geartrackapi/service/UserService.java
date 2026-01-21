@@ -3,8 +3,8 @@ package com.example.geartrackapi.service;
 import com.example.geartrackapi.dao.model.Role;
 import com.example.geartrackapi.dao.model.User;
 import com.example.geartrackapi.dao.repository.UserRepository;
-import com.example.geartrackapi.dto.OrganizationDto;
 import com.example.geartrackapi.dto.UserDto;
+import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,10 +27,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return convertToDto(user);
     }
-    
-    public List<UserDto> getAllUsers() {
-        log.info("[getAllUsers] Fetching all users");
-        return userRepository.findAll()
+
+    public List<UserDto> getAllUsersByOrganization() {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        log.info("[getAllUsersByOrganization] Fetching users for organization: {}", organizationId);
+        return userRepository.findByOrganizationIdAndHiddenFalse(organizationId)
                 .stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

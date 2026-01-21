@@ -16,15 +16,15 @@ import java.util.UUID;
 public interface QuoteRepository extends JpaRepository<Quote, UUID> {
     
     Optional<Quote> findByIdAndOrganizationIdAndHiddenFalse(UUID id, UUID organizationId);
-    
     @Query("SELECT q FROM Quote q WHERE q.hidden = false AND q.organizationId = :organizationId AND " +
+           "(:createdBy IS NULL OR q.userId = :createdBy) AND " +
            "(:search IS NULL OR :search = '' OR " +
            "UPPER(q.documentNumber) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.contractorCode) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.contractorName) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.productCode) LIKE UPPER(CONCAT('%', :search, '%')) OR " +
            "UPPER(q.productName) LIKE UPPER(CONCAT('%', :search, '%')))")
-    Page<Quote> findBySearchAndOrganization(@Param("search") String search, @Param("organizationId") UUID organizationId, Pageable pageable);
+    Page<Quote> findBySearchAndOrganizationAndCreatedBy(@Param("search") String search, @Param("organizationId") UUID organizationId, @Param("createdBy") UUID createdBy, Pageable pageable);
     
     @Query("SELECT COUNT(q) FROM Quote q WHERE q.hidden = false AND q.organizationId = :organizationId AND " +
            "q.createdAt >= :startOfMonth AND q.createdAt < :startOfNextMonth AND " +

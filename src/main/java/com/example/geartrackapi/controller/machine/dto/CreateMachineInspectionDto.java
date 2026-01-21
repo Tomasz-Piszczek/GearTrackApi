@@ -13,8 +13,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateMachineInspectionDto {
-    private UUID machineId;
-    
     private LocalDate inspectionDate;
     
     private String notes;

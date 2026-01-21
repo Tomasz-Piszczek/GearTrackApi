@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/employees")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasRole('SUPER_USER')")
 public class EmployeeController {
     
     private final EmployeeCrudService employeeCrudService;
@@ -55,12 +55,6 @@ public class EmployeeController {
     public void deleteEmployee(@PathVariable UUID id) {
         log.info("[deleteEmployee] Deleting employee with UUID: {}", id);
         employeeCrudService.deleteEmployee(id);
-    }
-    
-    @PostMapping("/assign-tool")
-    public ResponseEntity<AssignToolDto> assignToolToEmployee(@RequestBody AssignToolDto assignToolDto) {
-        log.info("[assignToolToEmployee] Assigning tool {} to employee {}", assignToolDto.getToolId(), assignToolDto.getEmployeeId());
-        return ResponseEntity.ok( toolCrudService.assignToolToEmployee(assignToolDto));
     }
     
     @GetMapping("/{employeeId}/tools")

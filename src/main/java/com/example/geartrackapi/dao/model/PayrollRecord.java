@@ -5,13 +5,14 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "payroll_records")
 @Getter
 @Setter
-@SuperBuilder
+@SuperBuilder()
 @NoArgsConstructor
 @AllArgsConstructor
 public class PayrollRecord extends OrganizationalEntity {
@@ -52,4 +53,7 @@ public class PayrollRecord extends OrganizationalEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", insertable = false, updatable = false)
     private Employee employee;
+    
+    @OneToMany(mappedBy = "payrollRecord", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PayrollDeduction> payrollDeductions;
 }

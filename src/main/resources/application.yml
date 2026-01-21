@@ -34,10 +34,18 @@ app:
     refresh-expiration: 604800000
   google:
     client-id: ${GOOGLE_CLIENT_ID}
-logging:
-  level:
-    com.example.geartrackapi: INFO
-    org.springframework.security: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+
+sqs:
+  local-uri: ""
+  launch-localstack: false
+  rate: 10000
+  limits:
+    maxNumberOfMessages: 10
+    maxBatchesPerRun: 5
+  url:
+    read:
+      employeeChangeQueue: ${SQS_EMPLOYEE_CHANGE_QUEUE_READ_URL:https://sqs.eu-central-1.amazonaws.com/886360753429/employeeChangeQueue}

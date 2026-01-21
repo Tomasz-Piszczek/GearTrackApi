@@ -30,13 +30,24 @@ app:
   google:
     client-id: 445794691525-hs55893o7q75k1ci3h6k27mkm2vciksb.apps.googleusercontent.com
 
-logging:
-  level:
-    com.example.geartrackapi: INFO
-    org.springframework.security: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+aws:
+  access-key: test
+  secret-key: test
+
+sqs:
+  local-uri: http://localhost:4567
+  launch-localstack: false
+  rate: 10000
+  limits:
+    maxNumberOfMessages: 10
+    maxBatchesPerRun: 5
+  url:
+    read:
+      employeeChangeQueue: http://sqs.us-east-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
+
+localstack:
+  sqs:
+    employeeChangeQueue: http://sqs.us-east-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
 
 server:
   port: 8080

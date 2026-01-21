@@ -30,7 +30,6 @@ public class OrganizationService {
         
         Organization organization = Organization.builder()
                 .organizationName(organizationName)
-                .userId(SecurityUtils.getCurrentUserId())
                 .build();
         
         return organizationRepository.save(organization);

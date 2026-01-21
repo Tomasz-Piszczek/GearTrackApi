@@ -4,13 +4,20 @@ import com.example.geartrackapi.controller.quote.dto.*;
 import com.example.geartrackapi.dao.model.Quote;
 import com.example.geartrackapi.dao.model.QuoteMaterial;
 import com.example.geartrackapi.dao.model.QuoteProductionActivity;
+import com.example.geartrackapi.dao.model.User;
+import com.example.geartrackapi.dao.repository.UserRepository;
+import com.example.geartrackapi.security.SecurityUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class QuoteMapper {
+
+    private final UserRepository userRepository;
 
     public Quote toEntity(CreateQuoteDto dto) {
         return Quote.builder()
@@ -22,6 +29,8 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .organizationId(SecurityUtils.getCurrentOrganizationId())
+                .userId(SecurityUtils.getCurrentUserId())
                 .build();
     }
 
@@ -39,7 +48,30 @@ public class QuoteMapper {
                 .build();
     }
 
+    public Quote updateEntity(Quote existing, UpdateQuoteDto dto) {
+        return Quote.builder()
+                .id(existing.getId())
+                .documentNumber(dto.getDocumentNumber())
+                .contractorCode(dto.getContractorCode())
+                .contractorName(dto.getContractorName())
+                .productCode(dto.getProductCode())
+                .productName(dto.getProductName())
+                .minQuantity(dto.getMinQuantity())
+                .totalQuantity(dto.getTotalQuantity())
+                .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .organizationId(existing.getOrganizationId())
+                .userId(existing.getUserId())
+                .build();
+    }
+
     public QuoteListDto toListDto(Quote entity) {
+        String createdByEmail = null;
+        if (entity.getUserId() != null) {
+            createdByEmail = userRepository.findById(entity.getUserId())
+                    .map(User::getEmail)
+                    .orElse(null);
+        }
+
         return QuoteListDto.builder()
                 .uuid(entity.getId())
                 .documentNumber(entity.getDocumentNumber())
@@ -52,6 +84,8 @@ public class QuoteMapper {
                 .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .createdBy(entity.getUserId())
+                .createdByEmail(createdByEmail)
                 .build();
     }
 

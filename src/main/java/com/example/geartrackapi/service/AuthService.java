@@ -1,16 +1,12 @@
 package com.example.geartrackapi.service;
 
 import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
-import com.example.geartrackapi.controller.auth.dto.LoginDto;
-import com.example.geartrackapi.controller.auth.dto.RegisterDto;
 import com.example.geartrackapi.dao.model.User;
 import com.example.geartrackapi.dao.repository.UserRepository;
 import com.example.geartrackapi.security.JwtUtils;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
@@ -24,54 +20,15 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    
+
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     @Value("${app.google.client-id}")
     private String googleClientId;
-    
-    public AuthResponseDto register(RegisterDto registerDto) {
-        User user = new User();
-        user.setEmail(registerDto.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(registerDto.getPassword()));
-        user.setUserId(UUID.randomUUID());
-        user.setEmailVerified(true);
-        
-        User savedUser = userRepository.save(user);
-        String token = jwtUtils.generateToken(savedUser.getEmail(), savedUser.getId());
-        String refreshToken = jwtUtils.generateRefreshToken(savedUser.getEmail(), savedUser.getId());
 
-        return AuthResponseDto.builder()
-                .token(token)
-                .refreshToken(refreshToken)
-                .email(savedUser.getEmail())
-                .userId(savedUser.getId())
-                .build();
-    }
-    
-    public AuthResponseDto login(LoginDto loginDto) {
-        User user = userRepository.findByEmailAndHiddenFalse(loginDto.getEmail())
-                .orElseThrow(() -> new EntityNotFoundException("User with name: " + loginDto.getEmail() + " not found"));
-
-        if (passwordEncoder.matches(loginDto.getPassword(), user.getPasswordHash())) {
-            String token = jwtUtils.generateToken(user.getEmail(), user.getId());
-            String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId());
-
-            return AuthResponseDto.builder()
-                    .token(token)
-                    .refreshToken(refreshToken)
-                    .email(user.getEmail())
-                    .userId(user.getId())
-                    .build();
-        }
-        
-        return null;
-    }
-    
     public AuthResponseDto handleGoogleLogin(String idToken) {
         
         try {
@@ -80,12 +37,27 @@ public class AuthService {
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 JsonNode tokenInfo = objectMapper.readTree(response.getBody());
-                
+
                 String audience = tokenInfo.get("aud").asText();
                 if (!googleClientId.equals(audience)) {
                     throw new RuntimeException("Invalid token audience");
                 }
-                
+
+                if (tokenInfo.has("exp")) {
+                    long expirationTime = tokenInfo.get("exp").asLong();
+                    long currentTime = System.currentTimeMillis() / 1000;
+                    if (currentTime >= expirationTime) {
+                        throw new RuntimeException("Token has expired");
+                    }
+                }
+
+                if (tokenInfo.has("iss")) {
+                    String issuer = tokenInfo.get("iss").asText();
+                    if (!issuer.equals("https://accounts.google.com") && !issuer.equals("accounts.google.com")) {
+                        throw new RuntimeException("Invalid token issuer");
+                    }
+                }
+
                 String email = tokenInfo.get("email").asText();
                 String name = tokenInfo.get("name").asText();
 
@@ -94,11 +66,10 @@ public class AuthService {
                         .orElse(null);
                 
                 if (user == null) {
-                    user = new User();
-                    user.setEmail(email);
-                    user.setUserId(UUID.randomUUID());
-                    user.setEmailVerified(true);
-                    user.setPasswordHash("GOOGLE_OAUTH2_USER");
+                    user = User.builder()
+                            .email(email)
+                            .emailVerified(true)
+                            .build();
                     user = userRepository.save(user);
                 }
                 

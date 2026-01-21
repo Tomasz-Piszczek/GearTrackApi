@@ -20,4 +20,6 @@ public class QuoteListDto {
     private Double totalPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private UUID createdBy;
+    private String createdByEmail;
 }
