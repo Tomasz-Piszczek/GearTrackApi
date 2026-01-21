@@ -77,7 +77,6 @@ public class AuthService {
                 if (user == null) {
                     user = User.builder()
                             .email(email)
-                            .userId(UUID.randomUUID())
                             .emailVerified(true)
                             .passwordHash("GOOGLE_OAUTH2_USER")
                             .build();

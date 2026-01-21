@@ -14,6 +14,7 @@ public class PayrollDeductionMapper {
                 .category(entity.getCategory())
                 .note(entity.getNote())
                 .amount(entity.getAmount())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
     

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class QuoteMapper {
-    
+
     private final UserRepository userRepository;
 
     public Quote toEntity(CreateQuoteDto dto) {
@@ -71,7 +71,7 @@ public class QuoteMapper {
                     .map(User::getEmail)
                     .orElse(null);
         }
-        
+
         return QuoteListDto.builder()
                 .uuid(entity.getId())
                 .documentNumber(entity.getDocumentNumber())

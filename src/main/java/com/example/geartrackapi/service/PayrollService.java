@@ -37,27 +37,25 @@ public class PayrollService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
         List<Employee> allEmployees = employeeRepository.findByOrganizationIdAndHiddenFalse(organizationId);
-        
+
         Map<UUID, PayrollRecord> recordMap = existingRecords.stream()
                 .collect(Collectors.toMap(PayrollRecord::getEmployeeId, Function.identity()));
-        
+
         return allEmployees.stream()
                 .map(employee -> {
                     PayrollRecord record = recordMap.get(employee.getId());
-                    BigDecimal hoursWorked = BigDecimal.ZERO;
-                    
+
                     if (record != null) {
                         PayrollRecordDto dto = payrollMapper.toDto(record, employee);
-                        dto.setHoursWorked(hoursWorked);
                         dto.setDeductions(calculateTotalDeductions(record.getId()));
                         return dto;
                     }
-                    
+
                     return PayrollRecordDto.builder()
                             .employeeId(employee.getId().toString())
                             .employeeName(employee.getFirstName() + " " + employee.getLastName())
                             .hourlyRate(employee.getHourlyRate())
-                            .hoursWorked(hoursWorked)
+                            .hoursWorked(BigDecimal.ZERO)
                             .build();
                 })
                 .collect(Collectors.toList());
