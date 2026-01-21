@@ -38,8 +38,7 @@ jobs:
           echo "$EC2_SSH_KEY" > ec2-key.pem
           chmod 600 ec2-key.pem
           
-          # Create deployment script
-          cat > deploy.sh <<-'SCRIPT'
+          cat > deploy.sh << 'SCRIPT'
           #!/bin/bash
           set -e
           
@@ -81,7 +80,7 @@ jobs:
           docker image prune -f
           
           echo "Deployment completed successfully!"
-		SCRIPT
+          SCRIPT
 
           # Copy files to EC2
           scp -o StrictHostKeyChecking=no -i ec2-key.pem geartrack-backend.tar ec2-user@$EC2_HOST:/home/ec2-user/
