@@ -1,7 +1,6 @@
 package com.example.geartrackapi.controller.auth;
 
 import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
-import com.example.geartrackapi.controller.auth.dto.LoginDto;
 import com.example.geartrackapi.service.AuthService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,12 +17,6 @@ public class AuthController {
     
     private final AuthService authService;
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto) {
-        log.info("[login] User login attempt for email: {}", loginDto.getEmail());
-        return ResponseEntity.ok(authService.login(loginDto));
-    }
-    
     @PostMapping("/google")
     public ResponseEntity<AuthResponseDto> googleLogin(@RequestBody GoogleTokenDto googleTokenDto) {
         log.info("[googleLogin] Google OAuth2 login attempt");
