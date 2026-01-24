@@ -55,9 +55,12 @@ jobs:
             --name geartrack-backend \
             --restart unless-stopped \
             -p 8080:8080 \
-            --memory="390m" \
-            --memory-swap="390m" \
             --env-file /home/ec2-user/apps/backend/.env \
+            --log-driver=awslogs \
+            --log-opt awslogs-region=eu-central-1 \
+            --log-opt awslogs-group=/apps/geartrack-backend \
+            --log-opt awslogs-stream-prefix=geartrack \
+            --log-opt awslogs-create-group=true \
             geartrack-backend:latest
           
           echo "Waiting for application to start..."
