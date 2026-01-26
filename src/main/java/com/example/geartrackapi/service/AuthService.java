@@ -64,7 +64,7 @@ public class AuthService {
 
                 User user = userRepository.findByEmailAndHiddenFalse(email)
                         .orElse(null);
-                
+
                 if (user == null) {
                     user = User.builder()
                             .email(email)
@@ -72,9 +72,10 @@ public class AuthService {
                             .build();
                     user = userRepository.save(user);
                 }
-                
-                String token = jwtUtils.generateToken(user.getEmail(), user.getId());
-                String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId());
+
+                UUID organizationId = user.getOrganization() != null ? user.getOrganization().getId() : null;
+                String token = jwtUtils.generateToken(user.getEmail(), user.getId(), user.getRole(), organizationId);
+                String refreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId(), user.getRole(), organizationId);
 
                 return AuthResponseDto.builder()
                         .token(token)
@@ -92,22 +93,26 @@ public class AuthService {
     }
     
     public AuthResponseDto refreshToken(String refreshToken) {
-        
+
         if (!jwtUtils.validateToken(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
         }
-        
+
         String email = jwtUtils.getUsernameFromToken(refreshToken);
         UUID userId = jwtUtils.getUserIdFromToken(refreshToken);
 
-        String newToken = jwtUtils.generateToken(email, userId);
-        String newRefreshToken = jwtUtils.generateRefreshToken(email, userId);
-        
+        User user = userRepository.findByEmailAndHiddenFalse(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UUID organizationId = user.getOrganization() != null ? user.getOrganization().getId() : null;
+        String newToken = jwtUtils.generateToken(user.getEmail(), user.getId(), user.getRole(), organizationId);
+        String newRefreshToken = jwtUtils.generateRefreshToken(user.getEmail(), user.getId(), user.getRole(), organizationId);
+
         return AuthResponseDto.builder()
                 .token(newToken)
                 .refreshToken(newRefreshToken)
-                .email(email)
-                .userId(userId)
+                .email(user.getEmail())
+                .userId(user.getId())
                 .build();
     }
 }
