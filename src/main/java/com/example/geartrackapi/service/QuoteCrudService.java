@@ -17,8 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -58,30 +56,12 @@ public class QuoteCrudService {
     }
     
     private void updateQuoteMaterials(Quote quote, List<QuoteMaterialDto> newMaterials) {
-        Set<UUID> activeIds = newMaterials.stream()
-                .map(QuoteMaterialDto::getUuid)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        
-        quote.getMaterials().stream()
-                .filter(material -> !activeIds.contains(material.getId()))
-                .forEach(material -> material.setHidden(true));
-        
         quote.getMaterials().clear();
         List<QuoteMaterial> materials = quoteMapper.toMaterialEntities(newMaterials, quote);
         quote.getMaterials().addAll(materials);
     }
     
     private void updateQuoteProductionActivities(Quote quote, List<QuoteProductionActivityDto> newActivities) {
-        Set<UUID> activeIds = newActivities.stream()
-                .map(QuoteProductionActivityDto::getUuid)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        
-        quote.getProductionActivities().stream()
-                .filter(activity -> !activeIds.contains(activity.getId()))
-                .forEach(activity -> activity.setHidden(true));
-        
         quote.getProductionActivities().clear();
         List<QuoteProductionActivity> activities = quoteMapper.toProductionActivityEntities(newActivities, quote);
         quote.getProductionActivities().addAll(activities);
