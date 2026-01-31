@@ -23,35 +23,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = null;
+
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            token = authHeader.substring(7);
+        }
 
-            if (jwtUtils.validateToken(token)) {
-                String username = jwtUtils.getUsernameFromToken(token);
-                UUID userId = jwtUtils.getUserIdFromToken(token);
-                Role role = jwtUtils.getRoleFromToken(token);
-                UUID organizationId = jwtUtils.getOrganizationIdFromToken(token);
+        if (token == null) {
+            token = request.getParameter("token");
+        }
 
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    SecurityUser userDetails = SecurityUser.builder()
-                            .userId(userId)
-                            .username(username)
-                            .email(username)
-                            .role(role)
-                            .organizationId(organizationId)
-                            .enabled(true)
-                            .accountNonExpired(true)
-                            .accountNonLocked(true)
-                            .credentialsNonExpired(true)
-                            .build();
+        if (token != null && jwtUtils.validateToken(token)) {
+            String username = jwtUtils.getUsernameFromToken(token);
+            UUID userId = jwtUtils.getUserIdFromToken(token);
+            Role role = jwtUtils.getRoleFromToken(token);
+            UUID organizationId = jwtUtils.getOrganizationIdFromToken(token);
 
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, token, userDetails.getAuthorities());
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                SecurityUser userDetails = SecurityUser.builder()
+                        .userId(userId)
+                        .username(username)
+                        .email(username)
+                        .role(role)
+                        .organizationId(organizationId)
+                        .enabled(true)
+                        .accountNonExpired(true)
+                        .accountNonLocked(true)
+                        .credentialsNonExpired(true)
+                        .build();
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, token, userDetails.getAuthorities());
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
