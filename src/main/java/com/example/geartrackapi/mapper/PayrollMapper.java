@@ -38,7 +38,6 @@ public class PayrollMapper {
     
     public PayrollRecord toEntity(PayrollRecordDto dto, Integer year, Integer month) {
         return PayrollRecord.builder()
-                .id(UUID.fromString(dto.getPayrollRecordId()))
                 .employeeId(UUID.fromString(dto.getEmployeeId()))
                 .year(year)
                 .month(month)

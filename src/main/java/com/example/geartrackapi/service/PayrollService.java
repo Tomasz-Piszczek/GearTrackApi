@@ -77,11 +77,13 @@ public class PayrollService {
     private void createPayrollRecord(PayrollRecordDto dto, Integer year, Integer month, UUID organizationId) {
         PayrollRecord payrollRecord = payrollMapper.toEntity(dto, year, month);
         PayrollRecord savedRecord = payrollRecordRepository.save(payrollRecord);
-        List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
-                .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
-                .collect(Collectors.toList());
 
-        payrollDeductionRepository.saveAll(deductions);
+        if (dto.getPayrollDeductions() != null && !dto.getPayrollDeductions().isEmpty()) {
+            List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
+                    .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
+                    .collect(Collectors.toList());
+            payrollDeductionRepository.saveAll(deductions);
+        }
     }
 
     private void updatePayrollRecord(PayrollRecordDto dto, UUID organizationId) {
@@ -103,11 +105,12 @@ public class PayrollService {
         existingDeductions.forEach(deduction -> deduction.setHidden(true));
         payrollDeductionRepository.saveAll(existingDeductions);
 
-        List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
-                .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
-                .collect(Collectors.toList());
-
-        payrollDeductionRepository.saveAll(deductions);
+        if (dto.getPayrollDeductions() != null && !dto.getPayrollDeductions().isEmpty()) {
+            List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
+                    .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
+                    .collect(Collectors.toList());
+            payrollDeductionRepository.saveAll(deductions);
+        }
     }
 
     private BigDecimal calculateTotalDeductions(UUID payrollRecordId) {
