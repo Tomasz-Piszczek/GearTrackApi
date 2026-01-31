@@ -61,5 +61,11 @@ public class ToolController {
         log.info("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
         return toolCrudService.getEmployeesAssignedToTool(toolId);
     }
-    
+
+    @PostMapping("/mark-used/{employeeToolId}")
+    public AssignToolDto markToolAsUsed(@PathVariable UUID employeeToolId) {
+        log.info("[markToolAsUsed] Marking tool as used for EmployeeTool UUID: {}", employeeToolId);
+        return toolCrudService.markToolAsUsed(employeeToolId);
+    }
+
 }
