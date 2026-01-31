@@ -101,6 +101,19 @@ public class ToolCrudService {
                 .map(employeeToolMapper::toAssignToolDto)
                 .collect(Collectors.toList());
     }
-    
-    
+
+    public AssignToolDto markToolAsUsed(UUID employeeToolId) {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        EmployeeTool employeeTool = employeeToolRepository.findById(employeeToolId)
+                .orElseThrow(() -> new EntityNotFoundException("EmployeeTool not found with UUID: " + employeeToolId));
+
+        if (!employeeTool.getOrganizationId().equals(organizationId)) {
+            throw new IllegalArgumentException("EmployeeTool does not belong to current organization");
+        }
+
+        employeeTool.setUsedAt(LocalDate.now());
+        return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
+    }
+
+
 }

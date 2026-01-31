@@ -1,5 +1,6 @@
 package com.example.geartrackapi.security;
 
+import com.example.geartrackapi.dao.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -26,18 +27,20 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
     
-    public String generateToken(String username, UUID userId) {
-        return generateToken(username, userId, jwtExpiration);
+    public String generateToken(String username, UUID userId, Role role, UUID organizationId) {
+        return generateToken(username, userId, role, organizationId, jwtExpiration);
     }
-    
-    public String generateRefreshToken(String username, UUID userId) {
-        return generateToken(username, userId, refreshExpiration);
+
+    public String generateRefreshToken(String username, UUID userId, Role role, UUID organizationId) {
+        return generateToken(username, userId, role, organizationId, refreshExpiration);
     }
-    
-    private String generateToken(String username, UUID userId, long expiration) {
+
+    private String generateToken(String username, UUID userId, Role role, UUID organizationId, long expiration) {
         return Jwts.builder()
                 .subject(username)
                 .claim("userId", userId.toString())
+                .claim("role", role != null ? role.name() : Role.USER.name())
+                .claim("organizationId", organizationId != null ? organizationId.toString() : null)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
@@ -61,7 +64,27 @@ public class JwtUtils {
                 .getPayload();
         return UUID.fromString(claims.get("userId", String.class));
     }
-    
+
+    public Role getRoleFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        String roleStr = claims.get("role", String.class);
+        return roleStr != null ? Role.valueOf(roleStr) : Role.USER;
+    }
+
+    public UUID getOrganizationIdFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        String orgIdStr = claims.get("organizationId", String.class);
+        return orgIdStr != null ? UUID.fromString(orgIdStr) : null;
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
