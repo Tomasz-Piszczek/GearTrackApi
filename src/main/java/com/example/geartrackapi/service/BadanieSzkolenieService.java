@@ -129,6 +129,8 @@ public class BadanieSzkolenieService {
     }
 
     public SseEmitter subscribe() {
+        List<BadanieSzkolenieDto> allBadania = getAllBadaniaSzkolenia();
+
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
@@ -137,7 +139,6 @@ public class BadanieSzkolenieService {
         emitter.onError((e) -> emitters.remove(emitter));
 
         try {
-            List<BadanieSzkolenieDto> allBadania = getAllBadaniaSzkolenia();
             emitter.send(SseEmitter.event()
                     .name("INITIAL")
                     .data(allBadania));

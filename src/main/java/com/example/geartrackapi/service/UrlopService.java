@@ -124,6 +124,8 @@ public class UrlopService {
     }
 
     public SseEmitter subscribe() {
+        List<UrlopDto> allUrlopy = getAllUrlopy();
+
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
@@ -132,7 +134,6 @@ public class UrlopService {
         emitter.onError((e) -> emitters.remove(emitter));
 
         try {
-            List<UrlopDto> allUrlopy = getAllUrlopy();
             emitter.send(SseEmitter.event()
                     .name("INITIAL")
                     .data(allUrlopy));
