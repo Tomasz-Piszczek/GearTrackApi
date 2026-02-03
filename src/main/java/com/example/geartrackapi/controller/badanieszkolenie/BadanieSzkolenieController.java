@@ -22,6 +22,12 @@ public class BadanieSzkolenieController {
 
     private final BadanieSzkolenieService badanieSzkolenieService;
 
+    @GetMapping
+    public ResponseEntity<List<BadanieSzkolenieDto>> getAllBadaniaSzkolenia() {
+        log.info("[getAllBadaniaSzkolenia] Getting all badania szkolenia for organization");
+        return ResponseEntity.ok(badanieSzkolenieService.getAllBadaniaSzkolenia());
+    }
+
     @GetMapping("/{employeeId}")
     public ResponseEntity<List<BadanieSzkolenieDto>> getBadaniaSzkoleniaByEmployeeId(@PathVariable UUID employeeId) {
         log.info("[getBadaniaSzkoleniaByEmployeeId] Getting badania szkolenia for employee: {}", employeeId);

@@ -36,6 +36,7 @@ public class UrlopService {
     private final UrlopMapper urlopMapper;
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
+    @Transactional(readOnly = true)
     public List<UrlopDto> getUrlopByEmployeeId(UUID employeeId) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<Urlop> urlopy = urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId);
@@ -44,6 +45,7 @@ public class UrlopService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<UrlopDto> getAllUrlopy() {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<Urlop> urlopy = urlopRepository.findByOrganizationIdAndHiddenFalse(organizationId);
@@ -124,23 +126,23 @@ public class UrlopService {
     }
 
     public SseEmitter subscribe() {
-        List<UrlopDto> allUrlopy = getAllUrlopy();
+        log.info("[subscribe] Creating new SSE emitter for urlopy updates");
 
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
-        emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onTimeout(() -> emitters.remove(emitter));
-        emitter.onError((e) -> emitters.remove(emitter));
-
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("INITIAL")
-                    .data(allUrlopy));
-        } catch (IOException e) {
-            log.error("Error sending initial data to SSE client", e);
+        emitter.onCompletion(() -> {
+            log.info("[subscribe] SSE emitter completed");
             emitters.remove(emitter);
-        }
+        });
+        emitter.onTimeout(() -> {
+            log.info("[subscribe] SSE emitter timed out");
+            emitters.remove(emitter);
+        });
+        emitter.onError((e) -> {
+            log.error("[subscribe] SSE emitter error", e);
+            emitters.remove(emitter);
+        });
 
         return emitter;
     }

@@ -36,6 +36,7 @@ public class BadanieSzkolenieService {
     private final BadanieSzkolenieMapper badanieSzkolenieMapper;
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
+    @Transactional(readOnly = true)
     public List<BadanieSzkolenieDto> getBadaniaSzkoleniaByEmployeeId(UUID employeeId) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<BadanieSzkolenie> badania = badanieSzkolenieRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId);
@@ -44,6 +45,7 @@ public class BadanieSzkolenieService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<BadanieSzkolenieDto> getAllBadaniaSzkolenia() {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<BadanieSzkolenie> badania = badanieSzkolenieRepository.findByOrganizationIdAndHiddenFalse(organizationId);
@@ -123,29 +125,30 @@ public class BadanieSzkolenieService {
         emitEvent("DELETE", deletedDto);
     }
 
+    @Transactional(readOnly = true)
     public List<String> getCategories() {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         return badanieSzkolenieRepository.findDistinctCategoriesByOrganizationId(organizationId);
     }
 
     public SseEmitter subscribe() {
-        List<BadanieSzkolenieDto> allBadania = getAllBadaniaSzkolenia();
+        log.info("[subscribe] Creating new SSE emitter for badania szkolenia updates");
 
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
         emitters.add(emitter);
 
-        emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onTimeout(() -> emitters.remove(emitter));
-        emitter.onError((e) -> emitters.remove(emitter));
-
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("INITIAL")
-                    .data(allBadania));
-        } catch (IOException e) {
-            log.error("Error sending initial data to SSE client", e);
+        emitter.onCompletion(() -> {
+            log.info("[subscribe] SSE emitter completed");
             emitters.remove(emitter);
-        }
+        });
+        emitter.onTimeout(() -> {
+            log.info("[subscribe] SSE emitter timed out");
+            emitters.remove(emitter);
+        });
+        emitter.onError((e) -> {
+            log.error("[subscribe] SSE emitter error", e);
+            emitters.remove(emitter);
+        });
 
         return emitter;
     }

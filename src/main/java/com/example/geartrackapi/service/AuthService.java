@@ -4,6 +4,7 @@ import com.example.geartrackapi.controller.auth.dto.AuthResponseDto;
 import com.example.geartrackapi.dao.model.User;
 import com.example.geartrackapi.dao.repository.UserRepository;
 import com.example.geartrackapi.security.JwtUtils;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +30,7 @@ public class AuthService {
     @Value("${app.google.client-id}")
     private String googleClientId;
 
+    @Transactional
     public AuthResponseDto handleGoogleLogin(String idToken) {
         
         try {
@@ -92,6 +94,7 @@ public class AuthService {
         }
     }
     
+    @Transactional
     public AuthResponseDto refreshToken(String refreshToken) {
 
         if (!jwtUtils.validateToken(refreshToken)) {

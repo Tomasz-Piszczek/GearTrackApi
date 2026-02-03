@@ -22,6 +22,12 @@ public class UrlopController {
 
     private final UrlopService urlopService;
 
+    @GetMapping
+    public ResponseEntity<List<UrlopDto>> getAllUrlopy() {
+        log.info("[getAllUrlopy] Getting all urlopy for organization");
+        return ResponseEntity.ok(urlopService.getAllUrlopy());
+    }
+
     @GetMapping("/{employeeId}")
     public ResponseEntity<List<UrlopDto>> getUrlopByEmployeeId(@PathVariable UUID employeeId) {
         log.info("[getUrlopByEmployeeId] Getting urlopy for employee: {}", employeeId);
