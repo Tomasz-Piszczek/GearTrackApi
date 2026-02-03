@@ -28,6 +28,7 @@ public class PayrollMapper {
                 .deductionsNote(entity.getDeductionsNote())
                 .bankTransfer(entity.getBankTransfer())
                 .cashAmount(entity.getCashAmount())
+                .paid(entity.getPaid())
                 .payrollDeductions(entity.getPayrollDeductions() != null ? 
                     entity.getPayrollDeductions().stream()
                         .filter(deduction -> !deduction.getHidden())
@@ -50,6 +51,7 @@ public class PayrollMapper {
                 .deductionsNote(dto.getDeductionsNote())
                 .bankTransfer(dto.getBankTransfer())
                 .cashAmount(dto.getCashAmount())
+                .paid(dto.getPaid() != null ? dto.getPaid() : false)
                 .build();
     }
     

@@ -20,5 +20,6 @@ public class PayrollRecordDto {
     private String deductionsNote;
     private BigDecimal bankTransfer;
     private BigDecimal cashAmount;
+    private Boolean paid;
     private List<PayrollDeductionDto> payrollDeductions;
 }

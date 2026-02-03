@@ -98,6 +98,7 @@ public class PayrollService {
         existingRecord.setDeductionsNote(dto.getDeductionsNote());
         existingRecord.setBankTransfer(dto.getBankTransfer());
         existingRecord.setCashAmount(dto.getCashAmount());
+        existingRecord.setPaid(dto.getPaid() != null ? dto.getPaid() : false);
 
         PayrollRecord savedRecord = payrollRecordRepository.save(existingRecord);
 
