@@ -13,6 +13,8 @@ public class EmployeeToolMapper {
     public AssignToolDto toAssignToolDto(EmployeeTool employeeTool) {
         return AssignToolDto.builder()
                 .uuid(employeeTool.getId())
+                .toolId(employeeTool.getToolId())
+                .employeeId(employeeTool.getEmployeeId())
                 .quantity(employeeTool.getQuantity())
                 .condition(employeeTool.getCondition())
                 .assignedAt(employeeTool.getAssignedAt())

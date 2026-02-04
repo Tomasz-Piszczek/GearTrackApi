@@ -1,9 +1,11 @@
 package com.example.geartrackapi.controller.urlop.dto;
 
+import com.example.geartrackapi.dao.model.UrlopCategory;
 import com.example.geartrackapi.dao.model.UrlopStatus;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -18,4 +20,6 @@ public class UrlopDto {
     private LocalDate toDate;
     private String note;
     private UrlopStatus status;
+    private UrlopCategory category;
+    private BigDecimal categoryRate;
 }

@@ -52,10 +52,18 @@ public class ToolCrudService {
     }
     
     public void deleteTool(UUID id) {
-        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, organizationId)
                 .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + id));
+
         tool.setHidden(true);
         toolRepository.save(tool);
+
+        List<EmployeeTool> assignments = employeeToolRepository.findByOrganizationIdAndToolId(organizationId, id);
+        assignments.forEach(assignment -> assignment.setHidden(true));
+        employeeToolRepository.saveAll(assignments);
+
+        log.info("[deleteTool] Soft deleted tool {} and {} assignments", id, assignments.size());
     }
     
     public AssignToolDto assignToolToEmployee(UUID toolId, UUID employeeId, AssignToolDto assignDto) {
@@ -76,15 +84,34 @@ public class ToolCrudService {
         return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
     }
     
-    public void unassignToolFromEmployee(UUID toolId, UUID employeeId) {
+    public void unassignToolFromEmployee(UUID toolId, UUID employeeId, Integer quantity) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+
         List<EmployeeTool> matchingAssignments = employeeToolRepository.findByOrganizationIdAndEmployeeId(organizationId, employeeId)
                 .stream()
-                .filter(et -> et.getToolId().equals(toolId))
+                .filter(et -> et.getToolId().equals(toolId) && !et.getHidden())
                 .collect(Collectors.toList());
-        
-        if (!matchingAssignments.isEmpty()) {
-            employeeToolRepository.deleteAll(matchingAssignments);
+
+        if (matchingAssignments.isEmpty()) {
+            throw new EntityNotFoundException("No tool assignment found for tool " + toolId + " and employee " + employeeId);
+        }
+
+        EmployeeTool assignment = matchingAssignments.get(0);
+
+        if (quantity >= assignment.getQuantity()) {
+            assignment.setHidden(true);
+            employeeToolRepository.save(assignment);
+            log.info("[unassignToolFromEmployee] Soft deleted assignment {} (removed {} of {} items)",
+                    assignment.getId(), quantity, assignment.getQuantity());
+        } else {
+            assignment.setQuantity(assignment.getQuantity() - quantity);
+            employeeToolRepository.save(assignment);
+            log.info("[unassignToolFromEmployee] Reduced quantity for assignment {} from {} to {}",
+                    assignment.getId(), assignment.getQuantity() + quantity, assignment.getQuantity());
         }
     }
     

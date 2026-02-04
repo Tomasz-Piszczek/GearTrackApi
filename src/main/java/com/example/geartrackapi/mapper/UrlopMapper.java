@@ -3,6 +3,7 @@ package com.example.geartrackapi.mapper;
 import com.example.geartrackapi.controller.urlop.dto.UrlopDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.model.Urlop;
+import com.example.geartrackapi.dao.model.UrlopCategory;
 import com.example.geartrackapi.dao.model.UrlopStatus;
 import com.example.geartrackapi.security.SecurityUtils;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,8 @@ public class UrlopMapper {
                 .toDate(urlop.getToDate())
                 .note(urlop.getNote())
                 .status(urlop.getStatus())
+                .category(urlop.getCategory())
+                .categoryRate(urlop.getCategory().getRate())
                 .build();
     }
 
@@ -30,6 +33,7 @@ public class UrlopMapper {
                 .toDate(dto.getToDate())
                 .note(dto.getNote())
                 .status(UrlopStatus.PENDING)
+                .category(dto.getCategory() != null ? dto.getCategory() : UrlopCategory.URLOP_BEZPLATNY)
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .build();
     }
@@ -42,6 +46,7 @@ public class UrlopMapper {
                 .toDate(dto.getToDate())
                 .note(dto.getNote())
                 .status(dto.getStatus() != null ? dto.getStatus() : existing.getStatus())
+                .category(dto.getCategory() != null ? dto.getCategory() : existing.getCategory())
                 .organizationId(existing.getOrganizationId())
                 .createdAt(existing.getCreatedAt())
                 .build();

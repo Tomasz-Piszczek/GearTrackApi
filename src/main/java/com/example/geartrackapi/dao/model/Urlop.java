@@ -33,4 +33,9 @@ public class Urlop extends OrganizationalEntity {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private UrlopStatus status = UrlopStatus.PENDING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    @Builder.Default
+    private UrlopCategory category;
 }

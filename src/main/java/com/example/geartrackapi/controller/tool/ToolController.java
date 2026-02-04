@@ -51,9 +51,9 @@ public class ToolController {
     }
     
     @DeleteMapping("/unassign/{toolId}/{employeeId}")
-    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId) {
-        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", toolId, employeeId);
-        toolCrudService.unassignToolFromEmployee(toolId, employeeId);
+    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId, @RequestParam Integer quantity) {
+        log.info("[unassignToolFromEmployee] Unassigning {} units of tool UUID: {} from employee UUID: {}", quantity, toolId, employeeId);
+        toolCrudService.unassignToolFromEmployee(toolId, employeeId, quantity);
     }
     
     @GetMapping("/{toolId}/employees")

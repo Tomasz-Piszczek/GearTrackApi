@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,4 +23,10 @@ public class PayrollRecordDto {
     private BigDecimal cashAmount;
     private Boolean paid;
     private List<PayrollDeductionDto> payrollDeductions;
+
+    private List<DailyBreakdownDto> dailyBreakdown;
+    private List<UrlopBreakdownDto> urlopBreakdown;
+    private Boolean hasDiscrepancy;
+    private BigDecimal lastSavedHours;
+    private LocalDateTime lastModifiedAt;
 }

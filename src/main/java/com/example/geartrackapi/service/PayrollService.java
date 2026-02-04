@@ -1,13 +1,20 @@
 package com.example.geartrackapi.service;
 
+import com.example.geartrackapi.client.BiAnalyticsClient;
+import com.example.geartrackapi.controller.payroll.dto.DailyHoursDto;
+import com.example.geartrackapi.controller.payroll.dto.DailyUrlopDto;
+import com.example.geartrackapi.controller.payroll.dto.EmployeeHoursDto;
+import com.example.geartrackapi.controller.payroll.dto.EmployeeWorkingHoursDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.model.PayrollRecord;
 import com.example.geartrackapi.dao.model.PayrollDeduction;
+import com.example.geartrackapi.dao.model.Urlop;
 import com.example.geartrackapi.dao.repository.EmployeeRepository;
 import com.example.geartrackapi.dao.repository.PayrollRecordRepository;
 import com.example.geartrackapi.dao.repository.PayrollDeductionRepository;
+import com.example.geartrackapi.dao.repository.UrlopRepository;
 import com.example.geartrackapi.mapper.PayrollMapper;
 import com.example.geartrackapi.mapper.PayrollDeductionMapper;
 import com.example.geartrackapi.security.SecurityUtils;
@@ -17,8 +24,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -26,14 +38,15 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PayrollService {
-    
+
     private final PayrollRecordRepository payrollRecordRepository;
     private final EmployeeRepository employeeRepository;
     private final PayrollMapper payrollMapper;
     private final PayrollDeductionRepository payrollDeductionRepository;
     private final PayrollDeductionMapper payrollDeductionMapper;
+    private final CalculateWorkingHoursService calculateWorkingHoursService;
     
-    public List<PayrollRecordDto> getPayrollRecords(Integer year, Integer month) {
+    public List<PayrollRecordDto> getPayrollRecords(Integer year, Integer month, String jwtToken) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
         List<Employee> allEmployees = employeeRepository.findByOrganizationIdAndHiddenFalse(organizationId);
@@ -41,22 +54,50 @@ public class PayrollService {
         Map<UUID, PayrollRecord> recordMap = existingRecords.stream()
                 .collect(Collectors.toMap(PayrollRecord::getEmployeeId, Function.identity()));
 
+        List<String> employeeNames = allEmployees.stream()
+                .map(employee -> employee.getFirstName() + " " + employee.getLastName())
+                .collect(Collectors.toList());
+
+        Map<String, CalculateWorkingHoursService.WorkingHoursData> workingHoursMap =
+                calculateWorkingHoursService.calculateWorkingHours(employeeNames, year, month, jwtToken, organizationId);
+
         return allEmployees.stream()
                 .map(employee -> {
+                    String employeeName = employee.getFirstName() + " " + employee.getLastName();
                     PayrollRecord record = recordMap.get(employee.getId());
+                    CalculateWorkingHoursService.WorkingHoursData workingHoursData = workingHoursMap.get(employeeName);
 
+                    PayrollRecordDto dto;
                     if (record != null) {
-                        PayrollRecordDto dto = payrollMapper.toDto(record, employee);
+                        dto = payrollMapper.toDto(record, employee);
                         dto.setDeductions(calculateTotalDeductions(record.getId()));
-                        return dto;
+
+                        BigDecimal calculatedHours = workingHoursData.getTotalHours();
+                        BigDecimal savedHours = record.getHoursWorked();
+
+                        if (calculatedHours.compareTo(savedHours) != 0) {
+                            dto.setHasDiscrepancy(true);
+                            dto.setLastSavedHours(savedHours);
+                            dto.setLastModifiedAt(record.getUpdatedAt());
+                        } else {
+                            dto.setHasDiscrepancy(false);
+                        }
+
+                        dto.setHoursWorked(calculatedHours);
+                    } else {
+                        dto = PayrollRecordDto.builder()
+                                .employeeId(employee.getId().toString())
+                                .employeeName(employeeName)
+                                .hourlyRate(employee.getHourlyRate())
+                                .hoursWorked(workingHoursData.getTotalHours())
+                                .hasDiscrepancy(false)
+                                .build();
                     }
 
-                    return PayrollRecordDto.builder()
-                            .employeeId(employee.getId().toString())
-                            .employeeName(employee.getFirstName() + " " + employee.getLastName())
-                            .hourlyRate(employee.getHourlyRate())
-                            .hoursWorked(BigDecimal.ZERO)
-                            .build();
+                    dto.setDailyBreakdown(workingHoursData.getDailyBreakdown());
+                    dto.setUrlopBreakdown(workingHoursData.getUrlopBreakdown());
+
+                    return dto;
                 })
                 .collect(Collectors.toList());
     }
@@ -76,6 +117,7 @@ public class PayrollService {
 
     private void createPayrollRecord(PayrollRecordDto dto, Integer year, Integer month, UUID organizationId) {
         PayrollRecord payrollRecord = payrollMapper.toEntity(dto, year, month);
+        payrollRecord.setHoursWorked(dto.getHoursWorked());
         PayrollRecord savedRecord = payrollRecordRepository.save(payrollRecord);
 
         if (dto.getPayrollDeductions() != null && !dto.getPayrollDeductions().isEmpty()) {

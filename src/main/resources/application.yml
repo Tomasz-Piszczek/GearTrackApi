@@ -54,3 +54,8 @@ sqs:
   url:
     read:
       employeeChangeQueue: ${SQS_EMPLOYEE_CHANGE_QUEUE_READ_URL:https://sqs.eu-central-1.amazonaws.com/886360753429/employeeChangeQueue}
+      vacationChangeQueue: ${SQS_VACATION_CHANGE_QUEUE_READ_URL:https://sqs.eu-central-1.amazonaws.com/886360753429/vacationChangeQueue}
+
+bi-analytics:
+  base-url: https://api.deltar.live/service2
+  timeout: 10000

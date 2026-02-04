@@ -11,6 +11,8 @@ import java.util.UUID;
 @Builder
 public class AssignToolDto {
     private UUID uuid;
+    private UUID toolId;
+    private UUID employeeId;
     private Integer quantity;
     private String condition;
     private LocalDate assignedAt;
