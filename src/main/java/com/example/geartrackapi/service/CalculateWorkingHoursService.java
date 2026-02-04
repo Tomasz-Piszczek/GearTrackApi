@@ -10,7 +10,6 @@ import com.example.geartrackapi.dao.model.UrlopCategory;
 import com.example.geartrackapi.dao.repository.UrlopRepository;
 import com.example.geartrackapi.exception.WorkingHoursConflictException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -19,13 +18,13 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalculateWorkingHoursService {
 
     private final BiAnalyticsClient biAnalyticsClient;
     private final UrlopRepository urlopRepository;
+    private final PolishWorkingDaysService polishWorkingDaysService;
     private static final BigDecimal DEFAULT_URLOP_HOURS = new BigDecimal("8");
 
     public Map<String, WorkingHoursData> calculateWorkingHours(
@@ -50,7 +49,6 @@ public class CalculateWorkingHoursService {
                 .collect(Collectors.toMap(EmployeeHoursDto::getEmployeeName, hours -> hours, (a, b) -> a));
 
         Map<String, List<LocalDate>> allConflicts = new HashMap<>();
-
         Map<String, WorkingHoursData> result = new HashMap<>();
 
         for (String employeeName : employeeNames) {
@@ -81,7 +79,7 @@ public class CalculateWorkingHoursService {
                 LocalDate end = urlop.getToDate().isAfter(endOfMonth) ? endOfMonth : urlop.getToDate();
 
                 for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-                    if (date.getDayOfWeek().getValue() < 6) {
+                    if (polishWorkingDaysService.isWorkingDay(date)) {
                         urlopDates.add(date);
                     }
                 }
@@ -127,7 +125,6 @@ public class CalculateWorkingHoursService {
         if (hours.stripTrailingZeros().scale() <= 0) {
             return hours;
         }
-        // Round to nearest hour: >= 0.5 (30 min) rounds up, < 0.5 rounds down
         return hours.setScale(0, RoundingMode.HALF_UP);
     }
 
@@ -140,7 +137,7 @@ public class CalculateWorkingHoursService {
 
             BigDecimal hours = BigDecimal.ZERO;
             for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-                if (date.getDayOfWeek().getValue() < 6) {
+                if (polishWorkingDaysService.isWorkingDay(date)) {
                     hours = hours.add(DEFAULT_URLOP_HOURS);
                 }
             }

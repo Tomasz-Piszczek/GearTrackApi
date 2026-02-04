@@ -1,40 +1,27 @@
 package com.example.geartrackapi.service;
 
-import com.example.geartrackapi.client.BiAnalyticsClient;
-import com.example.geartrackapi.controller.payroll.dto.DailyHoursDto;
-import com.example.geartrackapi.controller.payroll.dto.DailyUrlopDto;
-import com.example.geartrackapi.controller.payroll.dto.EmployeeHoursDto;
-import com.example.geartrackapi.controller.payroll.dto.EmployeeWorkingHoursDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.model.PayrollRecord;
 import com.example.geartrackapi.dao.model.PayrollDeduction;
-import com.example.geartrackapi.dao.model.Urlop;
 import com.example.geartrackapi.dao.repository.EmployeeRepository;
 import com.example.geartrackapi.dao.repository.PayrollRecordRepository;
 import com.example.geartrackapi.dao.repository.PayrollDeductionRepository;
-import com.example.geartrackapi.dao.repository.UrlopRepository;
 import com.example.geartrackapi.mapper.PayrollMapper;
 import com.example.geartrackapi.mapper.PayrollDeductionMapper;
 import com.example.geartrackapi.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-@Slf4j
+
 @Service
 @RequiredArgsConstructor
 public class PayrollService {
@@ -45,7 +32,7 @@ public class PayrollService {
     private final PayrollDeductionRepository payrollDeductionRepository;
     private final PayrollDeductionMapper payrollDeductionMapper;
     private final CalculateWorkingHoursService calculateWorkingHoursService;
-    
+
     public List<PayrollRecordDto> getPayrollRecords(Integer year, Integer month, String jwtToken) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         List<PayrollRecord> existingRecords = payrollRecordRepository.findByYearAndMonthAndOrganizationIdAndHiddenFalseOrderByEmployeeId(year, month, organizationId);
@@ -101,7 +88,7 @@ public class PayrollService {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     @Transactional
     public void createOrUpdatePayrollRecords(List<PayrollRecordDto> records, Integer year, Integer month) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
@@ -120,7 +107,7 @@ public class PayrollService {
         payrollRecord.setHoursWorked(dto.getHoursWorked());
         PayrollRecord savedRecord = payrollRecordRepository.save(payrollRecord);
 
-        if (dto.getPayrollDeductions() != null && !dto.getPayrollDeductions().isEmpty()) {
+        if (!dto.getPayrollDeductions().isEmpty()) {
             List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
                     .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
                     .collect(Collectors.toList());
@@ -140,7 +127,7 @@ public class PayrollService {
         existingRecord.setDeductionsNote(dto.getDeductionsNote());
         existingRecord.setBankTransfer(dto.getBankTransfer());
         existingRecord.setCashAmount(dto.getCashAmount());
-        existingRecord.setPaid(dto.getPaid() != null ? dto.getPaid() : false);
+        existingRecord.setPaid(dto.getPaid());
 
         PayrollRecord savedRecord = payrollRecordRepository.save(existingRecord);
 
@@ -148,7 +135,7 @@ public class PayrollService {
         existingDeductions.forEach(deduction -> deduction.setHidden(true));
         payrollDeductionRepository.saveAll(existingDeductions);
 
-        if (dto.getPayrollDeductions() != null && !dto.getPayrollDeductions().isEmpty()) {
+        if (!dto.getPayrollDeductions().isEmpty()) {
             List<PayrollDeduction> deductions = dto.getPayrollDeductions().stream()
                     .map(deductionDto -> payrollDeductionMapper.toEntity(savedRecord.getId().toString(), deductionDto))
                     .collect(Collectors.toList());
@@ -157,10 +144,9 @@ public class PayrollService {
     }
 
     private BigDecimal calculateTotalDeductions(UUID payrollRecordId) {
-
         return payrollDeductionRepository.findByPayrollRecordIdAndHiddenFalse(payrollRecordId)
                 .stream()
-                .map(deduction -> deduction.getAmount())
+                .map(PayrollDeduction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
@@ -188,5 +174,4 @@ public class PayrollService {
                 .map(payrollDeductionMapper::toDto)
                 .collect(Collectors.toList());
     }
-
 }
