@@ -37,5 +37,5 @@ public class Urlop extends OrganizationalEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     @Builder.Default
-    private UrlopCategory category;
+    private UrlopCategory category = UrlopCategory.URLOP_WYPOCZYNKOWY;
 }
