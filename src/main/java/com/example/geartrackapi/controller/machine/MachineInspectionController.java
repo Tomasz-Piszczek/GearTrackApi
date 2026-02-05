@@ -7,9 +7,11 @@ import com.example.geartrackapi.service.MachineInspectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 import java.util.UUID;
@@ -60,5 +62,17 @@ public class MachineInspectionController {
         log.info("Deleting machine inspection {}", inspectionId);
         machineInspectionService.deleteInspection(inspectionId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/scheduled")
+    public ResponseEntity<List<MachineInspectionDto>> getAllScheduledInspections() {
+        log.info("Getting all scheduled inspections for organization");
+        return ResponseEntity.ok(machineInspectionService.getAllScheduledInspections());
+    }
+
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamInspections() {
+        log.info("[streamInspections] New SSE client connected");
+        return machineInspectionService.subscribe();
     }
 }
