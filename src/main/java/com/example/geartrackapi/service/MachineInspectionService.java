@@ -26,7 +26,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MachineInspectionService {
 
     private final MachineInspectionRepository machineInspectionRepository;
