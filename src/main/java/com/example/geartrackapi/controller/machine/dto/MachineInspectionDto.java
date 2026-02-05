@@ -20,6 +20,7 @@ public class MachineInspectionDto {
     private LocalDate inspectionDate;
     private String notes;
     private String status;
+    private String performedBy;
     private LocalDate createdAt;
     private LocalDate updatedAt;
 }

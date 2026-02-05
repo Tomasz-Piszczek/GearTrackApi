@@ -25,8 +25,11 @@ public interface MachineInspectionRepository extends JpaRepository<MachineInspec
     @Query("SELECT mi FROM MachineInspection mi WHERE mi.organizationId = :organizationId AND mi.machineId = :machineId AND mi.hidden = false ORDER BY mi.inspectionDate DESC")
     List<MachineInspection> findByOrganizationIdAndMachineIdOrderByInspectionDateDesc(@Param("organizationId") UUID organizationId, @Param("machineId") UUID machineId);
     
-    @Query("SELECT mi FROM MachineInspection mi WHERE mi.organizationId = :organizationId AND mi.machineId = :machineId AND mi.inspectionDate >= :fromDate AND mi.hidden = false ORDER BY mi.inspectionDate ASC")
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.organizationId = :organizationId AND mi.machineId = :machineId AND mi.inspectionDate >= :fromDate AND mi.status = 'SCHEDULED' AND mi.hidden = false ORDER BY mi.inspectionDate ASC")
     Optional<MachineInspection> findNextInspectionByMachineId(@Param("organizationId") UUID organizationId, @Param("machineId") UUID machineId, @Param("fromDate") LocalDate fromDate);
+
+    @Query("SELECT mi FROM MachineInspection mi WHERE mi.organizationId = :organizationId AND mi.status = 'SCHEDULED' AND mi.hidden = false")
+    List<MachineInspection> findAllScheduledByOrganizationId(@Param("organizationId") UUID organizationId);
     
     @Query("SELECT mi FROM MachineInspection mi WHERE mi.organizationId = :organizationId AND mi.machineId = :machineId AND mi.inspectionDate < :toDate AND mi.hidden = false ORDER BY mi.inspectionDate DESC")
     List<MachineInspection> findLastInspectionByMachineId(@Param("organizationId") UUID organizationId, @Param("machineId") UUID machineId, @Param("toDate") LocalDate toDate);
