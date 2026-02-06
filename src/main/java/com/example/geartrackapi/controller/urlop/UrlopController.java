@@ -57,9 +57,4 @@ public class UrlopController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamUrlopy() {
-        log.info("[streamUrlopy] New SSE client connected");
-        return urlopService.subscribe();
-    }
 }

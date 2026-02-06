@@ -70,9 +70,4 @@ public class MachineInspectionController {
         return ResponseEntity.ok(machineInspectionService.getAllScheduledInspections());
     }
 
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamInspections() {
-        log.info("[streamInspections] New SSE client connected");
-        return machineInspectionService.subscribe();
-    }
 }

@@ -18,12 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -34,7 +30,7 @@ public class UrlopService {
     private final UrlopRepository urlopRepository;
     private final EmployeeRepository employeeRepository;
     private final UrlopMapper urlopMapper;
-    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    private final SseEmitterService sseEmitterService;
 
     @Transactional(readOnly = true)
     public List<UrlopDto> getUrlopByEmployeeId(UUID employeeId) {
@@ -125,41 +121,12 @@ public class UrlopService {
         emitEvent("DELETE", deletedDto);
     }
 
-    public SseEmitter subscribe() {
-        log.info("[subscribe] Creating new SSE emitter for urlopy updates");
-
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitters.add(emitter);
-
-        emitter.onCompletion(() -> {
-            log.info("[subscribe] SSE emitter completed");
-            emitters.remove(emitter);
-        });
-        emitter.onTimeout(() -> {
-            log.info("[subscribe] SSE emitter timed out");
-            emitters.remove(emitter);
-        });
-        emitter.onError((e) -> {
-            log.error("[subscribe] SSE emitter error", e);
-            emitters.remove(emitter);
-        });
-
-        return emitter;
-    }
-
     private void emitEvent(String eventType, UrlopDto urlopDto) {
-        List<SseEmitter> deadEmitters = new CopyOnWriteArrayList<>();
-        emitters.forEach(emitter -> {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name(eventType)
-                        .data(urlopDto));
-            } catch (IOException e) {
-                log.error("Error sending SSE event", e);
-                deadEmitters.add(emitter);
-            }
-        });
-        emitters.removeAll(deadEmitters);
+        sseEmitterService.emitEvent(
+            SecurityUtils.getCurrentOrganizationId(),
+            "URLOP." + eventType,
+            urlopDto
+        );
     }
 
     private boolean isCurrentUserAdmin() {

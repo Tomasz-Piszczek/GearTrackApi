@@ -15,13 +15,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @Slf4j
 @Service
@@ -31,7 +26,7 @@ public class MachineInspectionService {
     private final MachineInspectionRepository machineInspectionRepository;
     private final MachineRepository machineRepository;
     private final MachineInspectionMapper machineInspectionMapper;
-    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    private final SseEmitterService sseEmitterService;
     
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getAllInspections(Pageable pageable) {
@@ -104,40 +99,11 @@ public class MachineInspectionService {
                 .toList();
     }
 
-    public SseEmitter subscribe() {
-        log.info("[subscribe] Creating new SSE emitter for machine inspection updates");
-
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        emitters.add(emitter);
-
-        emitter.onCompletion(() -> {
-            log.info("[subscribe] SSE emitter completed");
-            emitters.remove(emitter);
-        });
-        emitter.onTimeout(() -> {
-            log.info("[subscribe] SSE emitter timed out");
-            emitters.remove(emitter);
-        });
-        emitter.onError((e) -> {
-            log.error("[subscribe] SSE emitter error", e);
-            emitters.remove(emitter);
-        });
-
-        return emitter;
-    }
-
     private void emitEvent(String eventType, MachineInspectionDto dto) {
-        List<SseEmitter> deadEmitters = new CopyOnWriteArrayList<>();
-        emitters.forEach(emitter -> {
-            try {
-                emitter.send(SseEmitter.event()
-                        .name(eventType)
-                        .data(dto));
-            } catch (IOException e) {
-                log.error("Error sending SSE event", e);
-                deadEmitters.add(emitter);
-            }
-        });
-        emitters.removeAll(deadEmitters);
+        sseEmitterService.emitEvent(
+            SecurityUtils.getCurrentOrganizationId(),
+            "MACHINE_INSPECTION." + eventType,
+            dto
+        );
     }
 }

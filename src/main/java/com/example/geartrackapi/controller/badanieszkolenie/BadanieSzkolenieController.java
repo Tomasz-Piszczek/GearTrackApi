@@ -63,9 +63,4 @@ public class BadanieSzkolenieController {
         return ResponseEntity.ok(badanieSzkolenieService.getCategories());
     }
 
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamBadaniaSzkolenia() {
-        log.info("[streamBadaniaSzkolenia] New SSE client connected");
-        return badanieSzkolenieService.subscribe();
-    }
 }
