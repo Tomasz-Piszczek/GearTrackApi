@@ -17,7 +17,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/badania-szkolenia")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasRole('SUPER_USER')")
+@PreAuthorize("hasRole('ADMIN')")
 public class BadanieSzkolenieController {
 
     private final BadanieSzkolenieService badanieSzkolenieService;
