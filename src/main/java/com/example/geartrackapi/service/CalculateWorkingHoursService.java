@@ -68,6 +68,8 @@ public class CalculateWorkingHoursService {
                         .date(biDay.getDate())
                         .actualHours(actualHours)
                         .roundedHours(roundedHours)
+                        .startTime(biDay.getStartTime())
+                        .endTime(biDay.getEndTime())
                         .build());
             }
 

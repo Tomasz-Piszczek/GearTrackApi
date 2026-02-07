@@ -61,4 +61,15 @@ public class PayrollController {
         return ResponseEntity.ok(payrollService.getEmployeeDeductions(employeeId));
     }
 
+    @GetMapping("/employee-hours/{employeeName}/{year}/{month}")
+    public ResponseEntity<EmployeeWorkingHoursDto> getEmployeeWorkingHours(
+            @PathVariable String employeeName,
+            @PathVariable Integer year,
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("[getEmployeeWorkingHours] Getting working hours for employee: {} for {}/{}", employeeName, year, month);
+        String token = authHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(payrollService.getEmployeeWorkingHours(employeeName, year, month, token));
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.geartrackapi.service;
 
+import com.example.geartrackapi.controller.payroll.dto.EmployeeWorkingHoursDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.dao.model.Employee;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -173,5 +175,28 @@ public class PayrollService {
         return deductions.stream()
                 .map(payrollDeductionMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    public EmployeeWorkingHoursDto getEmployeeWorkingHours(String employeeName, Integer year, Integer month, String jwtToken) {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+
+        Map<String, CalculateWorkingHoursService.WorkingHoursData> workingHoursMap =
+                calculateWorkingHoursService.calculateWorkingHours(Collections.singletonList(employeeName), year, month, jwtToken, organizationId);
+
+        CalculateWorkingHoursService.WorkingHoursData workingHoursData = workingHoursMap.get(employeeName);
+
+        if (workingHoursData == null) {
+            return EmployeeWorkingHoursDto.builder()
+                    .totalHours(BigDecimal.ZERO)
+                    .dailyBreakdown(Collections.emptyList())
+                    .urlopBreakdown(Collections.emptyList())
+                    .build();
+        }
+
+        return EmployeeWorkingHoursDto.builder()
+                .totalHours(workingHoursData.getTotalHours())
+                .dailyBreakdown(workingHoursData.getDailyBreakdown())
+                .urlopBreakdown(workingHoursData.getUrlopBreakdown())
+                .build();
     }
 }

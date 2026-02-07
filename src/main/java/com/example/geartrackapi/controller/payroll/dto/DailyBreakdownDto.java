@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -16,4 +17,6 @@ public class DailyBreakdownDto {
     private LocalDate date;
     private BigDecimal actualHours;
     private BigDecimal roundedHours;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 }
