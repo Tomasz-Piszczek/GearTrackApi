@@ -33,7 +33,7 @@ public class UrlopMapper {
                 .toDate(dto.getToDate())
                 .note(dto.getNote())
                 .status(UrlopStatus.PENDING)
-                .category(dto.getCategory() != null ? dto.getCategory() : UrlopCategory.URLOP_BEZPLATNY)
+                .category(dto.getCategory())
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .build();
     }
