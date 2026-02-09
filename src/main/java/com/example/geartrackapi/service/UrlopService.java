@@ -4,6 +4,7 @@ import com.example.geartrackapi.controller.urlop.dto.UrlopDto;
 import com.example.geartrackapi.dao.model.Employee;
 import com.example.geartrackapi.dao.model.Role;
 import com.example.geartrackapi.dao.model.Urlop;
+import com.example.geartrackapi.dao.model.UrlopCategory;
 import com.example.geartrackapi.dao.model.UrlopStatus;
 import com.example.geartrackapi.dao.repository.EmployeeRepository;
 import com.example.geartrackapi.dao.repository.UrlopRepository;
@@ -18,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +34,8 @@ public class UrlopService {
     private final EmployeeRepository employeeRepository;
     private final UrlopMapper urlopMapper;
     private final SseEmitterService sseEmitterService;
+    private final PolishWorkingDaysService polishWorkingDaysService;
+    private final EmployeeUrlopDaysService employeeUrlopDaysService;
 
     @Transactional(readOnly = true)
     public List<UrlopDto> getUrlopByEmployeeId(UUID employeeId) {
@@ -60,6 +65,9 @@ public class UrlopService {
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");
         }
+
+        validateUrlopNaZadanie(employeeId, urlopDto, organizationId, null);
+        validateRemainingVacationDays(employeeId, urlopDto, organizationId, null);
 
         Urlop urlop = urlopMapper.toEntity(urlopDto, employee);
         Urlop saved = urlopRepository.save(urlop);
@@ -94,6 +102,9 @@ public class UrlopService {
             throw new AccessDeniedException("Employee does not belong to your organization");
         }
 
+        validateUrlopNaZadanie(urlopDto.getEmployeeId(), urlopDto, organizationId, existing);
+        validateRemainingVacationDays(urlopDto.getEmployeeId(), urlopDto, organizationId, existing);
+
         Urlop updated = urlopMapper.updateEntity(existing, urlopDto, employee);
         Urlop saved = urlopRepository.save(updated);
         UrlopDto savedDto = urlopMapper.toDto(saved);
@@ -127,6 +138,91 @@ public class UrlopService {
             "URLOP." + eventType,
             urlopDto
         );
+    }
+
+    private void validateUrlopNaZadanie(UUID employeeId, UrlopDto urlopDto, UUID organizationId, Urlop existingUrlop) {
+        if (urlopDto.getCategory() != UrlopCategory.URLOP_NA_ŻĄDANIE) {
+            return;
+        }
+
+        LocalDate fromDate = urlopDto.getFromDate();
+        LocalDate toDate = urlopDto.getToDate();
+        int year = fromDate.getYear();
+
+        LocalDate yearStart = LocalDate.of(year, 1, 1);
+        LocalDate yearEnd = LocalDate.of(year, 12, 31);
+
+        List<Urlop> urlopyNaZadanie = urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId)
+                .stream()
+                .filter(u -> u.getStatus() == UrlopStatus.ACCEPTED)
+                .filter(u -> u.getCategory() == UrlopCategory.URLOP_NA_ŻĄDANIE)
+                .filter(u -> {
+                    if (existingUrlop != null && u.getId().equals(existingUrlop.getId())) {
+                        return false;
+                    }
+                    LocalDate uFrom = u.getFromDate();
+                    LocalDate uTo = u.getToDate();
+                    return !(uTo.isBefore(yearStart) || uFrom.isAfter(yearEnd));
+                })
+                .collect(Collectors.toList());
+
+        int currentUsedDays = urlopyNaZadanie.stream()
+                .mapToInt(u -> {
+                    LocalDate from = u.getFromDate().isBefore(yearStart) ? yearStart : u.getFromDate();
+                    LocalDate to = u.getToDate().isAfter(yearEnd) ? yearEnd : u.getToDate();
+                    return polishWorkingDaysService.countWorkingDays(from, to);
+                })
+                .sum();
+
+        int newUrlopDays = polishWorkingDaysService.countWorkingDays(fromDate, toDate);
+        int totalDays = currentUsedDays + newUrlopDays;
+
+        if (totalDays > 4) {
+            throw new IllegalStateException("Pracownik ma więcej niż 4 dni urlopu na żądanie w tym roku");
+        }
+    }
+
+    private void validateRemainingVacationDays(UUID employeeId, UrlopDto urlopDto, UUID organizationId, Urlop existingUrlop) {
+        if (!urlopDto.getCategory().countsTowardsVacationDays()) {
+            return;
+        }
+
+        LocalDate fromDate = urlopDto.getFromDate();
+        LocalDate toDate = urlopDto.getToDate();
+
+        int requestedDays = polishWorkingDaysService.countWorkingDays(fromDate, toDate);
+
+        try {
+            var vacationSummary = employeeUrlopDaysService.getVacationSummary(employeeId);
+
+            if (!vacationSummary.getIsConfigured()) {
+                return;
+            }
+
+            int remainingDays = vacationSummary.getRemainingDays();
+
+            if (existingUrlop != null && existingUrlop.getCategory().countsTowardsVacationDays()
+                    && existingUrlop.getStatus() == UrlopStatus.ACCEPTED) {
+                int existingDays = polishWorkingDaysService.countWorkingDays(
+                        existingUrlop.getFromDate(),
+                        existingUrlop.getToDate()
+                );
+                remainingDays += existingDays;
+            }
+
+            if (requestedDays > remainingDays) {
+                throw new IllegalStateException(String.format(
+                        "Pracownik nie ma wystarczającej liczby dni urlopu. Dostępne: %d dni, wymagane: %d dni",
+                        remainingDays,
+                        requestedDays
+                ));
+            }
+        } catch (Exception e) {
+            if (e instanceof IllegalStateException) {
+                throw e;
+            }
+            log.warn("Could not validate remaining vacation days for employee {}: {}", employeeId, e.getMessage());
+        }
     }
 
     private boolean isCurrentUserAdmin() {

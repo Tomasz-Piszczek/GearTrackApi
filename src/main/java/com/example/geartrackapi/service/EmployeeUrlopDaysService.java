@@ -90,7 +90,7 @@ public class EmployeeUrlopDaysService {
 
         return urlopy.stream()
                 .filter(u -> u.getStatus() == UrlopStatus.ACCEPTED)
-                .filter(u -> u.getCategory() == UrlopCategory.URLOP_WYPOCZYNKOWY)
+                .filter(u -> u.getCategory().countsTowardsVacationDays())
                 .mapToInt(u -> {
                     LocalDate from = u.getFromDate().isBefore(yearStart) ? yearStart : u.getFromDate();
                     LocalDate to = u.getToDate().isAfter(yearEnd) ? yearEnd : u.getToDate();
@@ -102,6 +102,23 @@ public class EmployeeUrlopDaysService {
                     return polishWorkingDaysService.countWorkingDays(from, to);
                 })
                 .sum();
+    }
+
+    public int countUrlopNaZadanieInYear(UUID employeeId, int year, UUID organizationId) {
+        LocalDate yearStart = LocalDate.of(year, 1, 1);
+        LocalDate yearEnd = LocalDate.of(year, 12, 31);
+
+        List<Urlop> urlopy = urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId);
+
+        return (int) urlopy.stream()
+                .filter(u -> u.getStatus() == UrlopStatus.ACCEPTED)
+                .filter(u -> u.getCategory() == UrlopCategory.URLOP_NA_ŻĄDANIE)
+                .filter(u -> {
+                    LocalDate from = u.getFromDate();
+                    LocalDate to = u.getToDate();
+                    return !(to.isBefore(yearStart) || from.isAfter(yearEnd));
+                })
+                .count();
     }
 
     @Transactional

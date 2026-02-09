@@ -3,7 +3,13 @@ package com.example.geartrackapi.dao.model;
 import java.math.BigDecimal;
 
 public enum UrlopCategory {
-    URLOP_WYPOCZYNKOWY(new BigDecimal("1.00"));
+    URLOP_WYPOCZYNKOWY(new BigDecimal("1.00")),
+    URLOP_NA_ŻĄDANIE(new BigDecimal("1.00")),
+    URLOP_MACIERZYNSKI(new BigDecimal("1.00")),
+    URLOP_OJCOWSKI(new BigDecimal("1.00")),
+    URLOP_RODZICIELSKI(new BigDecimal("1.00")),
+    URLOP_WYCHOWAWCZY(new BigDecimal("0.00")),
+    URLOP_BEZPLATNY(new BigDecimal("0.00"));
 
     private final BigDecimal rate;
 
@@ -13,5 +19,9 @@ public enum UrlopCategory {
 
     public BigDecimal getRate() {
         return rate;
+    }
+
+    public boolean countsTowardsVacationDays() {
+        return this == URLOP_WYPOCZYNKOWY || this == URLOP_NA_ŻĄDANIE;
     }
 }
