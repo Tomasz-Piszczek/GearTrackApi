@@ -49,7 +49,10 @@ public class PayrollRecord extends OrganizationalEntity {
     
     @Column(name = "deductions_note")
     private String deductionsNote;
-    
+
+    @Column(name = "paid", nullable = false)
+    private Boolean paid = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", insertable = false, updatable = false)
     private Employee employee;

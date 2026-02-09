@@ -30,7 +30,10 @@ public class MachineInspection extends OrganizationalEntity {
     
     @Column(name = "status")
     private String status;
-    
+
+    @Column(name = "performed_by", nullable = false)
+    private String performedBy;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "machine_id", insertable = false, updatable = false)
     private Machine machine;

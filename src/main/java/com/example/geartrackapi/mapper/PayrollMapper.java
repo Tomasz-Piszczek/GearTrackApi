@@ -28,6 +28,7 @@ public class PayrollMapper {
                 .deductionsNote(entity.getDeductionsNote())
                 .bankTransfer(entity.getBankTransfer())
                 .cashAmount(entity.getCashAmount())
+                .paid(entity.getPaid())
                 .payrollDeductions(entity.getPayrollDeductions() != null ? 
                     entity.getPayrollDeductions().stream()
                         .filter(deduction -> !deduction.getHidden())
@@ -38,7 +39,6 @@ public class PayrollMapper {
     
     public PayrollRecord toEntity(PayrollRecordDto dto, Integer year, Integer month) {
         return PayrollRecord.builder()
-                .id(UUID.fromString(dto.getPayrollRecordId()))
                 .employeeId(UUID.fromString(dto.getEmployeeId()))
                 .year(year)
                 .month(month)
@@ -51,6 +51,7 @@ public class PayrollMapper {
                 .deductionsNote(dto.getDeductionsNote())
                 .bankTransfer(dto.getBankTransfer())
                 .cashAmount(dto.getCashAmount())
+                .paid(dto.getPaid() != null ? dto.getPaid() : false)
                 .build();
     }
     

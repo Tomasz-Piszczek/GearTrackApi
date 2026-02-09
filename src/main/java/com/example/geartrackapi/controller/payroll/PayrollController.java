@@ -1,5 +1,6 @@
 package com.example.geartrackapi.controller.payroll;
 
+import com.example.geartrackapi.controller.payroll.dto.EmployeeWorkingHoursDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.service.PayrollService;
@@ -24,9 +25,11 @@ public class PayrollController {
     @GetMapping("/{year}/{month}")
     public ResponseEntity<List<PayrollRecordDto>> getPayrollRecords(
             @PathVariable Integer year,
-            @PathVariable Integer month) {
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String authHeader) {
         log.info("[getPayrollRecords] Getting payroll records for {}/{}", year, month);
-        return ResponseEntity.ok(payrollService.getPayrollRecords(year, month));
+        String token = authHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(payrollService.getPayrollRecords(year, month, token));
     }
     
     @PostMapping("/{year}/{month}")
@@ -56,6 +59,17 @@ public class PayrollController {
     public ResponseEntity<List<PayrollDeductionDto>> getEmployeeDeductions(@PathVariable UUID employeeId) {
         log.info("[getEmployeeDeductions] Getting deductions for employee: {}", employeeId);
         return ResponseEntity.ok(payrollService.getEmployeeDeductions(employeeId));
+    }
+
+    @GetMapping("/employee-hours/{employeeName}/{year}/{month}")
+    public ResponseEntity<EmployeeWorkingHoursDto> getEmployeeWorkingHours(
+            @PathVariable String employeeName,
+            @PathVariable Integer year,
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("[getEmployeeWorkingHours] Getting working hours for employee: {} for {}/{}", employeeName, year, month);
+        String token = authHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(payrollService.getEmployeeWorkingHours(employeeName, year, month, token));
     }
 
 }
