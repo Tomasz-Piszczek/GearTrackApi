@@ -6,6 +6,8 @@ import com.example.geartrackapi.dao.model.*;
 import com.example.geartrackapi.dao.repository.EmployeeRepository;
 import com.example.geartrackapi.dao.repository.UrlopRepository;
 import com.example.geartrackapi.mapper.UrlopMapper;
+import com.example.geartrackapi.security.SecurityUser;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -61,6 +65,28 @@ class UrlopServiceTest {
                 .lastName("Kowalski")
                 .organizationId(organizationId)
                 .build();
+
+        // Set up security context with the same organizationId
+        SecurityUser securityUser = SecurityUser.builder()
+                .userId(UUID.randomUUID())
+                .username("testuser")
+                .email("test@example.com")
+                .organizationId(organizationId)
+                .role(Role.ADMIN)
+                .enabled(true)
+                .accountNonExpired(true)
+                .accountNonLocked(true)
+                .credentialsNonExpired(true)
+                .build();
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(securityUser, null, securityUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -72,10 +98,17 @@ class UrlopServiceTest {
                 UrlopCategory.URLOP_NA_ŻĄDANIE
         );
 
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
+
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
         when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
                 .thenReturn(List.of());
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 3, 10), LocalDate.of(2024, 3, 10)))
                 .thenReturn(1);
 
@@ -102,10 +135,17 @@ class UrlopServiceTest {
         Urlop existingUrlop2 = createUrlop(LocalDate.of(2024, 3, 15), LocalDate.of(2024, 3, 16),
                 UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.ACCEPTED);
 
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
+
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
         when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
                 .thenReturn(List.of(existingUrlop1, existingUrlop2));
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 2, 10), LocalDate.of(2024, 2, 10)))
                 .thenReturn(1);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 3, 15), LocalDate.of(2024, 3, 16)))
@@ -192,10 +232,17 @@ class UrlopServiceTest {
         Urlop pendingUrlop = createUrlop(LocalDate.of(2024, 2, 10), LocalDate.of(2024, 2, 13),
                 UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.PENDING);
 
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
+
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
         when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
                 .thenReturn(List.of(pendingUrlop));
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 20)))
                 .thenReturn(1);
 
@@ -220,10 +267,17 @@ class UrlopServiceTest {
         Urlop rejectedUrlop = createUrlop(LocalDate.of(2024, 2, 10), LocalDate.of(2024, 2, 13),
                 UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.REJECTED);
 
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
+
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
         when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
                 .thenReturn(List.of(rejectedUrlop));
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 20)))
                 .thenReturn(1);
 
@@ -245,13 +299,17 @@ class UrlopServiceTest {
                 UrlopCategory.URLOP_WYPOCZYNKOWY
         );
 
-        Urlop existingNaZadanie = createUrlop(LocalDate.of(2024, 2, 10), LocalDate.of(2024, 2, 13),
-                UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.ACCEPTED);
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
 
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of(existingNaZadanie));
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
+        when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 30)))
+                .thenReturn(9);
 
         Urlop savedUrlop = createUrlop(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 30),
                 UrlopCategory.URLOP_WYPOCZYNKOWY, UrlopStatus.PENDING);
@@ -260,7 +318,6 @@ class UrlopServiceTest {
         when(urlopMapper.toDto(any())).thenReturn(urlopDto);
 
         assertDoesNotThrow(() -> urlopService.createUrlop(employeeId, urlopDto));
-        verify(polishWorkingDaysService, never()).countWorkingDays(any(), any());
     }
 
     @Test
@@ -293,12 +350,6 @@ class UrlopServiceTest {
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 20)))
                 .thenReturn(1);
 
-        Urlop updatedUrlop = createUrlop(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 20),
-                UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.ACCEPTED);
-        when(urlopMapper.updateEntity(any(), any(), any())).thenReturn(updatedUrlop);
-        when(urlopRepository.save(any())).thenReturn(updatedUrlop);
-        when(urlopMapper.toDto(any())).thenReturn(urlopDto);
-
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> urlopService.updateUrlop(urlopId, urlopDto));
 
@@ -317,10 +368,17 @@ class UrlopServiceTest {
         Urlop previousYearUrlop = createUrlop(LocalDate.of(2023, 12, 15), LocalDate.of(2023, 12, 18),
                 UrlopCategory.URLOP_NA_ŻĄDANIE, UrlopStatus.ACCEPTED);
 
+        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
+                .isConfigured(true)
+                .remainingDays(20)
+                .build();
+
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
         when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
                 .thenReturn(List.of(previousYearUrlop));
+        when(employeeUrlopDaysService.getVacationSummary(employeeId))
+                .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 1, 10), LocalDate.of(2024, 1, 10)))
                 .thenReturn(1);
 
@@ -349,8 +407,6 @@ class UrlopServiceTest {
 
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of());
         when(employeeUrlopDaysService.getVacationSummary(employeeId))
                 .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 22)))
@@ -379,8 +435,6 @@ class UrlopServiceTest {
 
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of());
         when(employeeUrlopDaysService.getVacationSummary(employeeId))
                 .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 29)))
@@ -409,8 +463,6 @@ class UrlopServiceTest {
 
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of());
         when(employeeUrlopDaysService.getVacationSummary(employeeId))
                 .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 22)))
@@ -434,17 +486,8 @@ class UrlopServiceTest {
                 UrlopCategory.URLOP_MACIERZYNSKI
         );
 
-        VacationSummaryDto vacationSummary = VacationSummaryDto.builder()
-                .isConfigured(true)
-                .remainingDays(0)
-                .build();
-
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of());
-        when(employeeUrlopDaysService.getVacationSummary(employeeId))
-                .thenReturn(vacationSummary);
 
         Urlop savedUrlop = createUrlop(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 12, 31),
                 UrlopCategory.URLOP_MACIERZYNSKI, UrlopStatus.PENDING);
@@ -472,8 +515,6 @@ class UrlopServiceTest {
 
         when(employeeRepository.findByIdAndHiddenFalse(employeeId))
                 .thenReturn(Optional.of(employee));
-        when(urlopRepository.findByEmployeeIdAndOrganizationIdAndHiddenFalse(employeeId, organizationId))
-                .thenReturn(List.of());
         when(employeeUrlopDaysService.getVacationSummary(employeeId))
                 .thenReturn(vacationSummary);
         when(polishWorkingDaysService.countWorkingDays(LocalDate.of(2024, 8, 20), LocalDate.of(2024, 8, 22)))
