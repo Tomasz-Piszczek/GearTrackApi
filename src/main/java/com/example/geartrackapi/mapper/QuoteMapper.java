@@ -58,9 +58,11 @@ public class QuoteMapper {
                 .productName(dto.getProductName())
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
-                .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .totalPrice(java.math.BigDecimal.valueOf(dto.getTotalPrice()))
                 .organizationId(existing.getOrganizationId())
                 .userId(existing.getUserId())
+                .materials(existing.getMaterials())
+                .productionActivities(existing.getProductionActivities())
                 .build();
     }
 
