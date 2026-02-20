@@ -21,6 +21,7 @@ public class QuoteDetailsDto {
     private Double totalPrice;
     private List<QuoteMaterialDto> materials;
     private List<QuoteProductionActivityDto> productionActivities;
+    private List<QuoteAttachmentDto> attachments;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -54,4 +54,8 @@ public class Quote extends OrganizationalEntity {
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
     private List<QuoteProductionActivity> productionActivities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Where(clause = "hidden = false")
+    private List<QuoteAttachment> attachments = new ArrayList<>();
 }

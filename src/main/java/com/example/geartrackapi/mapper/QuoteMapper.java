@@ -2,6 +2,7 @@ package com.example.geartrackapi.mapper;
 
 import com.example.geartrackapi.controller.quote.dto.*;
 import com.example.geartrackapi.dao.model.Quote;
+import com.example.geartrackapi.dao.model.QuoteAttachment;
 import com.example.geartrackapi.dao.model.QuoteMaterial;
 import com.example.geartrackapi.dao.model.QuoteProductionActivity;
 import com.example.geartrackapi.dao.model.User;
@@ -104,6 +105,7 @@ public class QuoteMapper {
                 .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
                 .materials(entity.getMaterials().stream().map(this::toMaterialDto).collect(Collectors.toList()))
                 .productionActivities(entity.getProductionActivities().stream().map(this::toProductionActivityDto).collect(Collectors.toList()))
+                .attachments(entity.getAttachments().stream().map(this::toAttachmentDto).collect(Collectors.toList()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
@@ -166,7 +168,7 @@ public class QuoteMapper {
     public QuoteProductionActivityDto toProductionActivityDto(QuoteProductionActivity entity) {
         Integer hours = entity.getWorkTimeMinutes() / 60;
         Integer minutes = entity.getWorkTimeMinutes() % 60;
-        
+
         return QuoteProductionActivityDto.builder()
                 .uuid(entity.getId())
                 .name(entity.getName())
@@ -176,6 +178,16 @@ public class QuoteMapper {
                 .marginPercent(entity.getMarginPercent())
                 .marginPln(entity.getMarginPln())
                 .ignoreMinQuantity(entity.getIgnoreMinQuantity())
+                .build();
+    }
+
+    public QuoteAttachmentDto toAttachmentDto(QuoteAttachment entity) {
+        return QuoteAttachmentDto.builder()
+                .uuid(entity.getId())
+                .fileName(entity.getFileName())
+                .fileType(entity.getFileType())
+                .fileSize(entity.getFileSize())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }
