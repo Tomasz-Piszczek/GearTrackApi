@@ -45,7 +45,7 @@ public class EmployeeCrudService {
     
     public EmployeeDto findEmployeeById(UUID id) {
         Employee employee = employeeRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
         return employeeMapper.toDto(employee);
     }
     
@@ -56,14 +56,14 @@ public class EmployeeCrudService {
     
     public EmployeeDto updateEmployee(EmployeeDto employeeDto) {
         Employee existing = employeeRepository.findByIdAndHiddenFalse(employeeDto.getUuid())
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + employeeDto.getUuid()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
         Employee updated = employeeMapper.updateEntity(existing, employeeDto);
         return employeeMapper.toDto(employeeRepository.save(updated));
     }
     
     public void deleteEmployee(UUID id) {
         Employee employee = employeeRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with UUID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
         employee.setHidden(true);
         employeeRepository.save(employee);
     }

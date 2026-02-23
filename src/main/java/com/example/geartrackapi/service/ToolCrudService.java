@@ -49,7 +49,7 @@ public class ToolCrudService {
 
     public ToolDto updateTool(ToolDto toolDto) {
         Tool existing = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolDto.getUuid()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
         ToolGroup toolGroup = toolGroupCrudService.getToolGroupById(toolDto.getGroupId());
         toolMapper.updateEntity(existing, toolDto, toolGroup);
         return toolMapper.toDto(toolRepository.save(existing));
@@ -58,7 +58,7 @@ public class ToolCrudService {
     public void deleteTool(UUID id) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
 
         tool.setHidden(true);
         toolRepository.save(tool);
@@ -73,15 +73,15 @@ public class ToolCrudService {
     public AssignToolDto assignToolToEmployee(UUID toolId, UUID employeeId, AssignToolDto assignDto) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolId, organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
 
         Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByOrganizationIdAndToolId(organizationId, toolId);
         int availableQuantity = Math.max(0, tool.getQuantity() - totalAssigned);
 
         if (assignDto.getQuantity() > availableQuantity) {
             throw new IllegalArgumentException(
-                String.format("Insufficient quantity. Available: %d, Requested: %d",
-                    availableQuantity, assignDto.getQuantity()));
+                String.format("Niewystarczająca ilość. Dostępne: %d.",
+                    availableQuantity));
         }
 
         EmployeeTool employeeTool = employeeToolMapper.toEntity(toolId, employeeId, assignDto);
@@ -92,7 +92,7 @@ public class ToolCrudService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         if (quantity == null || quantity <= 0) {
-            throw new IllegalArgumentException("Quantity must be greater than 0");
+            throw new IllegalArgumentException("Ilość musi być większa niż 0");
         }
 
         List<EmployeeTool> matchingAssignments = employeeToolRepository.findByOrganizationIdAndEmployeeId(organizationId, employeeId)
@@ -101,7 +101,7 @@ public class ToolCrudService {
                 .collect(Collectors.toList());
 
         if (matchingAssignments.isEmpty()) {
-            throw new EntityNotFoundException("No tool assignment found for tool " + toolId + " and employee " + employeeId);
+            throw new EntityNotFoundException("Nie znaleziono przypisania narzędzia");
         }
 
         EmployeeTool assignment = matchingAssignments.get(0);
@@ -136,10 +136,10 @@ public class ToolCrudService {
     public AssignToolDto markToolAsUsed(UUID employeeToolId) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         EmployeeTool employeeTool = employeeToolRepository.findById(employeeToolId)
-                .orElseThrow(() -> new EntityNotFoundException("EmployeeTool not found with UUID: " + employeeToolId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono przypisania narzędzia"));
 
         if (!employeeTool.getOrganizationId().equals(organizationId)) {
-            throw new IllegalArgumentException("EmployeeTool does not belong to current organization");
+            throw new IllegalArgumentException("Przypisanie narzędzia nie należy do bieżącej organizacji");
         }
 
         employeeTool.setUsedAt(LocalDate.now());

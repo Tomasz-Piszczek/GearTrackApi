@@ -46,7 +46,7 @@ public class ToolGroupCrudService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         ToolGroup existing = toolGroupRepository.findByIdAndOrganizationIdAndHiddenFalse(
                 toolGroupDto.getUuid(), organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupa narzędzi nie znaleziona: " + toolGroupDto.getUuid()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono grupy narzędzi"));
         toolGroupMapper.updateEntity(existing, toolGroupDto);
         return toolGroupMapper.toDto(toolGroupRepository.save(existing));
     }
@@ -55,7 +55,7 @@ public class ToolGroupCrudService {
     public void deleteToolGroup(UUID id) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         ToolGroup toolGroup = toolGroupRepository.findByIdAndOrganizationIdAndHiddenFalse(id, organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupa narzędzi nie znaleziona: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono grupy narzędzi"));
 
         List<Tool> toolsInGroup = toolRepository.findByOrganizationIdAndHiddenFalse(organizationId)
                 .stream()

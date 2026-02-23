@@ -126,7 +126,7 @@ public class EmployeeUrlopDaysService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         Employee employee = employeeRepository.findByIdAndHiddenFalse(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
 
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");

@@ -60,7 +60,7 @@ public class UrlopService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         Employee employee = employeeRepository.findByIdAndHiddenFalse(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
 
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");
@@ -83,7 +83,7 @@ public class UrlopService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         Urlop existing = urlopRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("Urlop not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono urlopu"));
 
         if (!existing.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Urlop does not belong to your organization");
@@ -96,7 +96,7 @@ public class UrlopService {
         }
 
         Employee employee = employeeRepository.findByIdAndHiddenFalse(urlopDto.getEmployeeId())
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with ID: " + urlopDto.getEmployeeId()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
 
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");
@@ -119,7 +119,7 @@ public class UrlopService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         Urlop urlop = urlopRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("Urlop not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono urlopu"));
 
         if (!urlop.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Urlop does not belong to your organization");

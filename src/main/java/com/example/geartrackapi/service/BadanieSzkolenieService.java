@@ -55,7 +55,7 @@ public class BadanieSzkolenieService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         Employee employee = employeeRepository.findByIdAndHiddenFalse(employeeId)
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
 
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");
@@ -75,7 +75,7 @@ public class BadanieSzkolenieService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         BadanieSzkolenie existing = badanieSzkolenieRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("BadanieSzkolenie not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono badania/szkolenia"));
 
         if (!existing.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("BadanieSzkolenie does not belong to your organization");
@@ -88,7 +88,7 @@ public class BadanieSzkolenieService {
         }
 
         Employee employee = employeeRepository.findByIdAndHiddenFalse(dto.getEmployeeId())
-                .orElseThrow(() -> new EntityNotFoundException("Employee not found with ID: " + dto.getEmployeeId()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono pracownika"));
 
         if (!employee.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("Employee does not belong to your organization");
@@ -108,7 +108,7 @@ public class BadanieSzkolenieService {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
 
         BadanieSzkolenie badanie = badanieSzkolenieRepository.findByIdAndHiddenFalse(id)
-                .orElseThrow(() -> new EntityNotFoundException("BadanieSzkolenie not found with ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono badania/szkolenia"));
 
         if (!badanie.getOrganizationId().equals(organizationId)) {
             throw new AccessDeniedException("BadanieSzkolenie does not belong to your organization");

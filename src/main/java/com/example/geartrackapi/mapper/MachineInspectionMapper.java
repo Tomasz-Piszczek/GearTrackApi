@@ -18,8 +18,8 @@ public class MachineInspectionMapper {
     
     public MachineInspectionDto toDto(MachineInspection inspection) {
         Machine machine = machineRepository.findById(inspection.getMachineId()).orElseThrow(
-                () -> new EntityNotFoundException("Machine with id:" +inspection.getMachineId() + "not found"));
-        
+                () -> new EntityNotFoundException("Nie znaleziono maszyny"));
+
         return MachineInspectionDto.builder()
                 .uuid(inspection.getId())
                 .machineId(inspection.getMachineId())
