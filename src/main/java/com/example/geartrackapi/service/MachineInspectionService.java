@@ -15,20 +15,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MachineInspectionService {
-    
+
     private final MachineInspectionRepository machineInspectionRepository;
     private final MachineRepository machineRepository;
     private final MachineInspectionMapper machineInspectionMapper;
+    private final SseEmitterService sseEmitterService;
     
     @Transactional(readOnly = true)
     public Page<MachineInspectionDto> getAllInspections(Pageable pageable) {
@@ -52,37 +50,60 @@ public class MachineInspectionService {
     public MachineInspectionDto createInspection(UUID machineId, CreateMachineInspectionDto createDto) {
         Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Machine not found"));
-        
+
         MachineInspection inspection = MachineInspection.builder()
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .machineId(machineId)
                 .inspectionDate(createDto.getInspectionDate())
                 .notes(createDto.getNotes())
                 .status(createDto.getStatus() != null ? createDto.getStatus() : "SCHEDULED")
+                .performedBy(createDto.getPerformedBy())
                 .build();
-        return machineInspectionMapper.toDto(machineInspectionRepository.save(inspection));
+        MachineInspectionDto savedDto = machineInspectionMapper.toDto(machineInspectionRepository.saveAndFlush(inspection));
+        emitEvent("CREATE", savedDto);
+        return savedDto;
     }
-    
+
     public MachineInspectionDto updateInspection(UUID inspectionId, CreateMachineInspectionDto updateDto) {
         MachineInspection existing = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
-        
+
         MachineInspection updated = machineInspectionMapper.updateEntity(existing, updateDto);
-        return machineInspectionMapper.toDto(machineInspectionRepository.save(updated));
+        MachineInspectionDto savedDto = machineInspectionMapper.toDto(machineInspectionRepository.saveAndFlush(updated));
+        emitEvent("UPDATE", savedDto);
+        return savedDto;
     }
-    
+
     public void deleteInspection(UUID inspectionId) {
         MachineInspection inspection = machineInspectionRepository.findByIdAndOrganizationIdAndHiddenFalse(inspectionId, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Inspection not found"));
         inspection.setHidden(true);
         machineInspectionRepository.save(inspection);
+        MachineInspectionDto deletedDto = machineInspectionMapper.toDto(inspection);
+        emitEvent("DELETE", deletedDto);
     }
-    
+
     @Transactional(readOnly = true)
     public List<MachineInspectionDto> getInspectionHistoryByMachineId(UUID machineId) {
         return machineInspectionRepository.findByOrganizationIdAndMachineIdOrderByInspectionDateDesc(SecurityUtils.getCurrentOrganizationId(), machineId)
                 .stream()
                 .map(machineInspectionMapper::toDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MachineInspectionDto> getAllScheduledInspections() {
+        return machineInspectionRepository.findAllScheduledByOrganizationId(SecurityUtils.getCurrentOrganizationId())
+                .stream()
+                .map(machineInspectionMapper::toDto)
+                .toList();
+    }
+
+    private void emitEvent(String eventType, MachineInspectionDto dto) {
+        sseEmitterService.emitEvent(
+            SecurityUtils.getCurrentOrganizationId(),
+            "MACHINE_INSPECTION." + eventType,
+            dto
+        );
     }
 }
