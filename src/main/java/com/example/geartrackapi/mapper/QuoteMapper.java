@@ -30,6 +30,7 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .note(dto.getNote())
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .userId(SecurityUtils.getCurrentUserId())
                 .build();
@@ -46,6 +47,7 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .note(dto.getNote())
                 .build();
     }
 
@@ -60,6 +62,7 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(java.math.BigDecimal.valueOf(dto.getTotalPrice()))
+                .note(dto.getNote())
                 .organizationId(existing.getOrganizationId())
                 .userId(existing.getUserId())
                 .materials(existing.getMaterials())
@@ -103,6 +106,7 @@ public class QuoteMapper {
                 .minQuantity(entity.getMinQuantity())
                 .totalQuantity(entity.getTotalQuantity())
                 .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
+                .note(entity.getNote())
                 .materials(entity.getMaterials().stream().map(this::toMaterialDto).collect(Collectors.toList()))
                 .productionActivities(entity.getProductionActivities().stream().map(this::toProductionActivityDto).collect(Collectors.toList()))
                 .attachments(entity.getAttachments().stream().map(this::toAttachmentDto).collect(Collectors.toList()))

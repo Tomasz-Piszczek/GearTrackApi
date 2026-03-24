@@ -19,6 +19,7 @@ public class QuoteDetailsDto {
     private Integer minQuantity;
     private Integer totalQuantity;
     private Double totalPrice;
+    private String note;
     private List<QuoteMaterialDto> materials;
     private List<QuoteProductionActivityDto> productionActivities;
     private List<QuoteAttachmentDto> attachments;

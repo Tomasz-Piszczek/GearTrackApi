@@ -44,6 +44,9 @@ public class Quote extends OrganizationalEntity {
     @Column(name = "total_price", precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
+
     @Column(name = "user_id")
     private UUID userId;
 
