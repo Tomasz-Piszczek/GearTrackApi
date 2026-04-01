@@ -15,4 +15,6 @@ public class ToolDto {
     private Integer quantity;
     private BigDecimal value;
     private Integer availableQuantity;
+    private UUID groupId;
+    private String groupName;
 }

@@ -32,8 +32,8 @@ public class QuoteMaterial extends OrganizationalEntity {
     @Column(name = "margin_pln", nullable = false, precision = 10, scale = 4)
     private BigDecimal marginPln;
     
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @Column(name = "quantity", nullable = false, precision = 10, scale = 4)
+    private BigDecimal quantity;
     
     @Column(name = "ignore_min_quantity", nullable = false)
     private Boolean ignoreMinQuantity;

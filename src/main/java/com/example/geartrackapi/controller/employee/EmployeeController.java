@@ -2,8 +2,11 @@ package com.example.geartrackapi.controller.employee;
 
 import org.springframework.data.domain.Page;
 import com.example.geartrackapi.controller.employee.dto.EmployeeDto;
+import com.example.geartrackapi.controller.employee.dto.EmployeeUrlopDaysDto;
+import com.example.geartrackapi.controller.employee.dto.VacationSummaryDto;
 import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.service.EmployeeCrudService;
+import com.example.geartrackapi.service.EmployeeUrlopDaysService;
 import com.example.geartrackapi.service.ToolCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +24,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN') or hasRole('USER') or hasRole('SUPER_USER')")
 public class EmployeeController {
-    
+
     private final EmployeeCrudService employeeCrudService;
     private final ToolCrudService toolCrudService;
+    private final EmployeeUrlopDaysService employeeUrlopDaysService;
     
     @GetMapping
     public ResponseEntity<Page<EmployeeDto>> findAllEmployees(
@@ -61,5 +65,19 @@ public class EmployeeController {
     public ResponseEntity<List<AssignToolDto>> getEmployeeTools(@PathVariable UUID employeeId) {
         log.info("[getEmployeeTools] Getting tools for employee {}", employeeId);
         return ResponseEntity.ok(toolCrudService.getToolsAssignedToEmployee(employeeId));
+    }
+
+    @GetMapping("/{employeeId}/vacation-summary")
+    public ResponseEntity<VacationSummaryDto> getVacationSummary(@PathVariable UUID employeeId) {
+        log.info("[getVacationSummary] Getting vacation summary for employee {}", employeeId);
+        return ResponseEntity.ok(employeeUrlopDaysService.getVacationSummary(employeeId));
+    }
+
+    @PostMapping("/{employeeId}/urlop-days")
+    public ResponseEntity<List<EmployeeUrlopDaysDto>> saveUrlopDays(
+            @PathVariable UUID employeeId,
+            @RequestBody List<EmployeeUrlopDaysDto> urlopDaysList) {
+        log.info("[saveUrlopDays] Saving urlop days for employee {}: {}", employeeId, urlopDaysList);
+        return ResponseEntity.ok(employeeUrlopDaysService.saveMultipleUrlopDays(employeeId, urlopDaysList));
     }
 }

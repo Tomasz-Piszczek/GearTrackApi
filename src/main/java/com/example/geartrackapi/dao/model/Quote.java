@@ -7,6 +7,7 @@ import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,14 +44,21 @@ public class Quote extends OrganizationalEntity {
     @Column(name = "total_price", precision = 10, scale = 2)
     private BigDecimal totalPrice;
 
+    @Column(name = "note", columnDefinition = "TEXT")
+    private String note;
+
     @Column(name = "user_id")
     private UUID userId;
 
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
-    private List<QuoteMaterial> materials;
-    
+    private List<QuoteMaterial> materials = new ArrayList<>();
+
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
-    private List<QuoteProductionActivity> productionActivities;
+    private List<QuoteProductionActivity> productionActivities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Where(clause = "hidden = false")
+    private List<QuoteAttachment> attachments = new ArrayList<>();
 }

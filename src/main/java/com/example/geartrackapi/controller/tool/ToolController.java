@@ -15,7 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tools")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
 public class ToolController {
     
     private final ToolCrudService toolCrudService;
@@ -51,9 +51,9 @@ public class ToolController {
     }
     
     @DeleteMapping("/unassign/{toolId}/{employeeId}")
-    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId) {
-        log.info("[unassignToolFromEmployee] Unassigning tool UUID: {} from employee UUID: {}", toolId, employeeId);
-        toolCrudService.unassignToolFromEmployee(toolId, employeeId);
+    public void unassignToolFromEmployee(@PathVariable UUID toolId, @PathVariable UUID employeeId, @RequestParam Integer quantity) {
+        log.info("[unassignToolFromEmployee] Unassigning {} units of tool UUID: {} from employee UUID: {}", quantity, toolId, employeeId);
+        toolCrudService.unassignToolFromEmployee(toolId, employeeId, quantity);
     }
     
     @GetMapping("/{toolId}/employees")
@@ -61,5 +61,11 @@ public class ToolController {
         log.info("[getEmployeesAssignedToTool] Getting employees assigned to tool UUID: {}", toolId);
         return toolCrudService.getEmployeesAssignedToTool(toolId);
     }
-    
+
+    @PostMapping("/mark-used/{employeeToolId}")
+    public AssignToolDto markToolAsUsed(@PathVariable UUID employeeToolId) {
+        log.info("[markToolAsUsed] Marking tool as used for EmployeeTool UUID: {}", employeeToolId);
+        return toolCrudService.markToolAsUsed(employeeToolId);
+    }
+
 }

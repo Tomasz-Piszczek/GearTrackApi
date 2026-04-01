@@ -9,14 +9,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class OrganizationService {
     
     private final OrganizationRepository organizationRepository;
@@ -25,7 +23,7 @@ public class OrganizationService {
     @PreAuthorize("hasRole('ADMIN')")
     public Organization createOrganization(String organizationName) {
         if (organizationRepository.existsByOrganizationNameAndHiddenFalse(organizationName)) {
-            throw new IllegalArgumentException("Organization with name already exists: " + organizationName);
+            throw new IllegalArgumentException("Organizacja o takiej nazwie już istnieje");
         }
         
         Organization organization = Organization.builder()
@@ -38,11 +36,11 @@ public class OrganizationService {
     @PreAuthorize("hasRole('ADMIN')")
     public Organization updateOrganization(UUID organizationId, String newOrganizationName) {
         Organization organization = organizationRepository.findByIdAndHiddenFalse(organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono organizacji"));
         
         if (!organization.getOrganizationName().equals(newOrganizationName) && 
             organizationRepository.existsByOrganizationNameAndHiddenFalse(newOrganizationName)) {
-            throw new IllegalArgumentException("Organization with name already exists: " + newOrganizationName);
+            throw new IllegalArgumentException("Organizacja o takiej nazwie już istnieje");
         }
         
         organization.setOrganizationName(newOrganizationName);
@@ -52,7 +50,7 @@ public class OrganizationService {
     @PreAuthorize("hasRole('ADMIN')")
     public void deleteOrganization(UUID organizationId) {
         Organization organization = organizationRepository.findByIdAndHiddenFalse(organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono organizacji"));
         
         organization.setHidden(true);
         organizationRepository.save(organization);
@@ -66,17 +64,17 @@ public class OrganizationService {
     @PreAuthorize("hasRole('ADMIN')")
     public Organization getOrganizationById(UUID organizationId) {
         return organizationRepository.findByIdWithUsersAndHiddenFalse(organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono organizacji"));
     }
     
     @PreAuthorize("hasRole('ADMIN')")
     public User assignUserToOrganization(String userEmail, UUID organizationId) {
         User user = userRepository.findByEmailAndHiddenFalse(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userEmail));
-        
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono użytkownika"));
+
         Organization organization = organizationRepository.findByIdAndHiddenFalse(organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Organization not found"));
-        
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono organizacji"));
+
         user.setOrganization(organization);
         return userRepository.save(user);
     }
@@ -84,8 +82,8 @@ public class OrganizationService {
     @PreAuthorize("hasRole('ADMIN')")
     public User removeUserFromOrganization(String userEmail) {
         User user = userRepository.findByEmailAndHiddenFalse(userEmail)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userEmail));
-        
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono użytkownika"));
+
         user.setOrganization(null);
         return userRepository.save(user);
     }
