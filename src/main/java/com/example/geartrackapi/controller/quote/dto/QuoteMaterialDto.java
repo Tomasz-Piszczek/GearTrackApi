@@ -14,6 +14,6 @@ public class QuoteMaterialDto {
     private BigDecimal purchasePrice;
     private BigDecimal marginPercent;
     private BigDecimal marginPln;
-    private Integer quantity;
+    private BigDecimal quantity;
     private Boolean ignoreMinQuantity;
 }
