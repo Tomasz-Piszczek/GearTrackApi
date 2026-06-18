@@ -33,6 +33,7 @@ public class QuoteMapper {
                 .note(dto.getNote())
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .userId(SecurityUtils.getCurrentUserId())
+                .approved(SecurityUtils.isCurrentUserAdmin())
                 .build();
     }
 
@@ -92,6 +93,7 @@ public class QuoteMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .createdBy(entity.getUserId())
                 .createdByEmail(createdByEmail)
+                .approved(entity.isApproved())
                 .build();
     }
 
@@ -112,6 +114,7 @@ public class QuoteMapper {
                 .attachments(entity.getAttachments().stream().map(this::toAttachmentDto).collect(Collectors.toList()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .approved(entity.isApproved())
                 .build();
     }
 

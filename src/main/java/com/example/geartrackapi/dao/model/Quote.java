@@ -50,6 +50,9 @@ public class Quote extends OrganizationalEntity {
     @Column(name = "user_id")
     private UUID userId;
 
+    @Column(name = "approved", nullable = false)
+    private boolean approved = false;
+
     @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
     private List<QuoteMaterial> materials = new ArrayList<>();

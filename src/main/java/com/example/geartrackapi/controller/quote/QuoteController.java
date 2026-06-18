@@ -2,6 +2,7 @@ package com.example.geartrackapi.controller.quote;
 
 import com.example.geartrackapi.controller.quote.dto.*;
 import com.example.geartrackapi.service.QuoteCrudService;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
@@ -56,6 +57,18 @@ public class QuoteController {
     public ResponseEntity<QuoteDetailsDto> getQuote(@PathVariable UUID id) {
         log.info("[getQuote] Getting quote details with UUID: {}", id);
         return ResponseEntity.ok(quoteCrudService.getQuoteDetails(id));
+    }
+
+    @Data
+    static class SetApprovalRequest {
+        private boolean approved;
+    }
+
+    @PatchMapping("/{id}/approved")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<QuoteListDto> setApproval(@PathVariable UUID id, @RequestBody SetApprovalRequest request) {
+        log.info("[setApproval] Setting approved={} for quote: {}", request.isApproved(), id);
+        return ResponseEntity.ok(quoteCrudService.setQuoteApproval(id, request.isApproved()));
     }
 
     @DeleteMapping("/{id}")

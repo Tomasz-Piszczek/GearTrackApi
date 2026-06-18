@@ -105,6 +105,14 @@ public class QuoteCrudService {
         return quoteMapper.toDetailsDto(quote);
     }
 
+    @Transactional
+    public QuoteListDto setQuoteApproval(UUID id, boolean approved) {
+        Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
+                .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + id));
+        quote.setApproved(approved);
+        return quoteMapper.toListDto(quoteRepository.save(quote));
+    }
+
     public void deleteQuote(UUID id) {
         Quote quote = quoteRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Quote not found with UUID: " + id));

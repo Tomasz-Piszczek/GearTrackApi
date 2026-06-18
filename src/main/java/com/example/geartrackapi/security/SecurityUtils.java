@@ -1,11 +1,10 @@
 package com.example.geartrackapi.security;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.example.geartrackapi.dao.model.Role;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public final class SecurityUtils {
@@ -47,6 +46,17 @@ public final class SecurityUtils {
             return springSecurityUser.getOrganizationId();
         }
         return null;
+    }
+
+    public static boolean isCurrentUserAdmin() {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
+        if (authentication == null) return false;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof SecurityUser user) {
+            return Role.ADMIN.equals(user.getRole());
+        }
+        return false;
     }
 
 }

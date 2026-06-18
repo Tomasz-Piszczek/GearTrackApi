@@ -25,4 +25,5 @@ public class QuoteDetailsDto {
     private List<QuoteAttachmentDto> attachments;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean approved;
 }
