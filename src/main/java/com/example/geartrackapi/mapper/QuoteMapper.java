@@ -53,22 +53,19 @@ public class QuoteMapper {
     }
 
     public Quote updateEntity(Quote existing, UpdateQuoteDto dto) {
-        return Quote.builder()
-                .id(existing.getId())
-                .documentNumber(dto.getDocumentNumber())
-                .contractorCode(dto.getContractorCode())
-                .contractorName(dto.getContractorName())
-                .productCode(dto.getProductCode())
-                .productName(dto.getProductName())
-                .minQuantity(dto.getMinQuantity())
-                .totalQuantity(dto.getTotalQuantity())
-                .totalPrice(java.math.BigDecimal.valueOf(dto.getTotalPrice()))
-                .note(dto.getNote())
-                .organizationId(existing.getOrganizationId())
-                .userId(existing.getUserId())
-                .materials(existing.getMaterials())
-                .productionActivities(existing.getProductionActivities())
-                .build();
+        // Mutate the managed entity in place (rather than building a new detached
+        // instance) so that clear()/addAll() on its collections operates on the
+        // managed persistent collections and orphanRemoval deletes removed rows.
+        existing.setDocumentNumber(dto.getDocumentNumber());
+        existing.setContractorCode(dto.getContractorCode());
+        existing.setContractorName(dto.getContractorName());
+        existing.setProductCode(dto.getProductCode());
+        existing.setProductName(dto.getProductName());
+        existing.setMinQuantity(dto.getMinQuantity());
+        existing.setTotalQuantity(dto.getTotalQuantity());
+        existing.setTotalPrice(java.math.BigDecimal.valueOf(dto.getTotalPrice()));
+        existing.setNote(dto.getNote());
+        return existing;
     }
 
     public QuoteListDto toListDto(Quote entity) {

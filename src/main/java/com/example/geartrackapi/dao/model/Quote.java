@@ -53,11 +53,11 @@ public class Quote extends OrganizationalEntity {
     @Column(name = "approved", nullable = false)
     private boolean approved = false;
 
-    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
     private List<QuoteMaterial> materials = new ArrayList<>();
 
-    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "quote", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Where(clause = "hidden = false")
     private List<QuoteProductionActivity> productionActivities = new ArrayList<>();
 

@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -79,15 +82,65 @@ public class QuoteCrudService {
     }
     
     private void updateQuoteMaterials(Quote quote, List<QuoteMaterialDto> newMaterials) {
-        quote.getMaterials().clear();
-        List<QuoteMaterial> materials = quoteMapper.toMaterialEntities(newMaterials, quote);
-        quote.getMaterials().addAll(materials);
+        List<QuoteMaterialDto> incoming = newMaterials != null ? newMaterials : List.of();
+
+        Map<UUID, QuoteMaterial> existingById = quote.getMaterials().stream()
+                .filter(m -> m.getId() != null)
+                .collect(Collectors.toMap(QuoteMaterial::getId, m -> m));
+
+        Set<UUID> incomingIds = incoming.stream()
+                .map(QuoteMaterialDto::getUuid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Removed materials are dropped from the managed collection; orphanRemoval
+        // on Quote.materials hard-deletes them.
+        quote.getMaterials().removeIf(m -> m.getId() == null || !incomingIds.contains(m.getId()));
+
+        for (QuoteMaterialDto dto : incoming) {
+            QuoteMaterial existing = dto.getUuid() != null ? existingById.get(dto.getUuid()) : null;
+            if (existing != null) {
+                existing.setName(dto.getName());
+                existing.setPurchasePrice(dto.getPurchasePrice());
+                existing.setMarginPercent(dto.getMarginPercent());
+                existing.setMarginPln(dto.getMarginPln());
+                existing.setQuantity(dto.getQuantity());
+                existing.setIgnoreMinQuantity(dto.getIgnoreMinQuantity());
+            } else {
+                quote.getMaterials().add(quoteMapper.toMaterialEntity(dto, quote));
+            }
+        }
     }
-    
+
     private void updateQuoteProductionActivities(Quote quote, List<QuoteProductionActivityDto> newActivities) {
-        quote.getProductionActivities().clear();
-        List<QuoteProductionActivity> activities = quoteMapper.toProductionActivityEntities(newActivities, quote);
-        quote.getProductionActivities().addAll(activities);
+        List<QuoteProductionActivityDto> incoming = newActivities != null ? newActivities : List.of();
+
+        Map<UUID, QuoteProductionActivity> existingById = quote.getProductionActivities().stream()
+                .filter(a -> a.getId() != null)
+                .collect(Collectors.toMap(QuoteProductionActivity::getId, a -> a));
+
+        Set<UUID> incomingIds = incoming.stream()
+                .map(QuoteProductionActivityDto::getUuid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // Removed activities are dropped from the managed collection; orphanRemoval
+        // on Quote.productionActivities hard-deletes them.
+        quote.getProductionActivities().removeIf(a -> a.getId() == null || !incomingIds.contains(a.getId()));
+
+        for (QuoteProductionActivityDto dto : incoming) {
+            QuoteProductionActivity existing = dto.getUuid() != null ? existingById.get(dto.getUuid()) : null;
+            if (existing != null) {
+                existing.setName(dto.getName());
+                existing.setWorkTimeMinutes((dto.getWorkTimeHours() * 60) + dto.getWorkTimeMinutes());
+                existing.setPrice(dto.getPrice());
+                existing.setMarginPercent(dto.getMarginPercent());
+                existing.setMarginPln(dto.getMarginPln());
+                existing.setIgnoreMinQuantity(dto.getIgnoreMinQuantity());
+            } else {
+                quote.getProductionActivities().add(quoteMapper.toProductionActivityEntity(dto, quote));
+            }
+        }
     }
 
     public Page<QuoteListDto> getQuotes(String search, UUID createdBy, Pageable pageable) {
