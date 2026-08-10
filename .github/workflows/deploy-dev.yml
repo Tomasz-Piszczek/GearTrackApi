@@ -38,7 +38,6 @@ jobs:
           echo "$EC2_SSH_KEY" > ec2-key.pem
           chmod 600 ec2-key.pem
           
-          # Create deployment script
           cat > deploy.sh << 'SCRIPT'
           #!/bin/bash
           set -e
@@ -57,6 +56,11 @@ jobs:
             --restart unless-stopped \
             -p 8080:8080 \
             --env-file /home/ec2-user/apps/backend/.env \
+            --log-driver=awslogs \
+            --log-opt awslogs-region=eu-central-1 \
+            --log-opt awslogs-group=/apps/geartrack-backend \
+            --log-opt awslogs-create-group=true \
+            --log-opt awslogs-multiline-pattern='^[0-9]{4}-[0-9]{2}-[0-9]{2}[T ]?[0-9]{2}:[0-9]{2}:[0-9]{2}' \
             geartrack-backend:latest
           
           echo "Waiting for application to start..."
@@ -82,7 +86,7 @@ jobs:
           
           echo "Deployment completed successfully!"
           SCRIPT
-          
+
           # Copy files to EC2
           scp -o StrictHostKeyChecking=no -i ec2-key.pem geartrack-backend.tar ec2-user@$EC2_HOST:/home/ec2-user/
           scp -o StrictHostKeyChecking=no -i ec2-key.pem deploy.sh ec2-user@$EC2_HOST:/home/ec2-user/

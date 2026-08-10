@@ -21,6 +21,7 @@ public class UserService {
     
     private final UserRepository userRepository;
     
+    @Transactional(readOnly = true)
     public UserDto getCurrentUser(String email) {
         log.info("[getCurrentUser] Fetching user data for email: {}", email);
         User user = userRepository.findByEmailAndHiddenFalse(email)
@@ -28,6 +29,7 @@ public class UserService {
         return convertToDto(user);
     }
 
+    @Transactional(readOnly = true)
     public List<UserDto> getAllUsersByOrganization() {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         log.info("[getAllUsersByOrganization] Fetching users for organization: {}", organizationId);
@@ -36,7 +38,8 @@ public class UserService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-    
+
+    @Transactional(readOnly = true)
     public UserDto getUserById(UUID userId) {
         log.info("[getUserById] Fetching user with id: {}", userId);
         User user = userRepository.findById(userId)

@@ -1,0 +1,71 @@
+package com.example.geartrackapi.controller;
+
+import com.example.geartrackapi.exception.WorkingHoursConflictException;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(WorkingHoursConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleWorkingHoursConflictException(WorkingHoursConflictException ex) {
+        log.warn("[handleWorkingHoursConflictException] {}", ex.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+
+        List<Map<String, Object>> conflicts = ex.getConflicts().entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> conflict = new HashMap<>();
+                    conflict.put("employeeName", entry.getKey());
+                    conflict.put("conflictDates", entry.getValue());
+                    return conflict;
+                })
+                .collect(Collectors.toList());
+
+        response.put("conflicts", conflicts);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
+        log.warn("[handleIllegalStateException] {}", ex.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("[handleIllegalArgumentException] {}", ex.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        log.warn("[handleEntityNotFoundException] {}", ex.getMessage());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+}

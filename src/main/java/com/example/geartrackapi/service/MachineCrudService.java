@@ -41,21 +41,21 @@ public class MachineCrudService {
     
     public MachineDto updateMachine(MachineDto machineDto) {
         Machine existing = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineDto.getUuid()));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono maszyny"));
         Machine updated = machineMapper.updateEntity(existing, machineDto);
         return machineMapper.toDto(machineRepository.save(updated));
     }
     
     public void deleteMachine(UUID id) {
         Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono maszyny"));
         machine.setHidden(true);
         machineRepository.save(machine);
     }
     
     public MachineDto assignMachineToEmployee(UUID machineId, UUID employeeId) {
         Machine machine = machineRepository.findByIdAndOrganizationIdAndHiddenFalse(machineId, SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Machine not found with UUID: " + machineId));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono maszyny"));
         machine.setEmployeeId(employeeId);
         return machineMapper.toDto(machineRepository.save(machine));
     }

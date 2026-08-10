@@ -27,7 +27,11 @@ public class Tool extends OrganizationalEntity {
     
     @Column(name = "value", precision = 10, scale = 2)
     private BigDecimal value;
-    
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tool_group_id")
+    private ToolGroup toolGroup;
+
     @OneToMany(mappedBy = "tool", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EmployeeTool> employeeTools;
 }

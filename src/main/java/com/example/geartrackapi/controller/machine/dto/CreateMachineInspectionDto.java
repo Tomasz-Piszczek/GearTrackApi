@@ -14,8 +14,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateMachineInspectionDto {
     private LocalDate inspectionDate;
-    
+
     private String notes;
-    
+
     private String status;
+
+    private String performedBy;
 }

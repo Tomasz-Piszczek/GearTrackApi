@@ -1,5 +1,6 @@
 package com.example.geartrackapi.controller.payroll;
 
+import com.example.geartrackapi.controller.payroll.dto.EmployeeWorkingHoursDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollDeductionDto;
 import com.example.geartrackapi.controller.payroll.dto.PayrollRecordDto;
 import com.example.geartrackapi.service.PayrollService;
@@ -16,20 +17,23 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/payroll")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class PayrollController {
     
     private final PayrollService payrollService;
     
     @GetMapping("/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PayrollRecordDto>> getPayrollRecords(
             @PathVariable Integer year,
-            @PathVariable Integer month) {
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String authHeader) {
         log.info("[getPayrollRecords] Getting payroll records for {}/{}", year, month);
-        return ResponseEntity.ok(payrollService.getPayrollRecords(year, month));
+        String token = authHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(payrollService.getPayrollRecords(year, month, token));
     }
     
     @PostMapping("/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> savePayrollRecords(
             @PathVariable Integer year,
             @PathVariable Integer month,
@@ -40,12 +44,14 @@ public class PayrollController {
     }
 
     @GetMapping("/categories")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<String>> getCategories() {
         log.info("[getCategories] Getting all payroll deduction categories");
         return ResponseEntity.ok(payrollService.getAllCategories());
     }
 
     @DeleteMapping("/categories/{category}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable String category) {
         log.info("[deleteCategory] Deleting category: {}", category);
         payrollService.deleteCategory(category);
@@ -53,9 +59,22 @@ public class PayrollController {
     }
 
     @GetMapping("/employees/{employeeId}/deductions")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PayrollDeductionDto>> getEmployeeDeductions(@PathVariable UUID employeeId) {
         log.info("[getEmployeeDeductions] Getting deductions for employee: {}", employeeId);
         return ResponseEntity.ok(payrollService.getEmployeeDeductions(employeeId));
+    }
+
+    @GetMapping("/employee-hours/{employeeName}/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<EmployeeWorkingHoursDto> getEmployeeWorkingHours(
+            @PathVariable String employeeName,
+            @PathVariable Integer year,
+            @PathVariable Integer month,
+            @RequestHeader("Authorization") String authHeader) {
+        log.info("[getEmployeeWorkingHours] Getting working hours for employee: {} for {}/{}", employeeName, year, month);
+        String token = authHeader.replace("Bearer ", "");
+        return ResponseEntity.ok(payrollService.getEmployeeWorkingHours(employeeName, year, month, token));
     }
 
 }

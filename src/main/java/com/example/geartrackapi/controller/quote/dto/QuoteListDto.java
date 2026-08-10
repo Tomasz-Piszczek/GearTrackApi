@@ -22,4 +22,5 @@ public class QuoteListDto {
     private LocalDateTime updatedAt;
     private UUID createdBy;
     private String createdByEmail;
+    private boolean approved;
 }

@@ -17,8 +17,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     
     @Override
     public UserDetails loadUserByUsername(String username)  {
-        User user = userRepository.findByEmailAndHiddenFalse(username).orElseThrow(() -> new EntityNotFoundException("User with name:" + username +"not found"));
-        
+        User user = userRepository.findByEmailAndHiddenFalse(username).orElseThrow(() -> new EntityNotFoundException("Nie znaleziono użytkownika"));
+
         return SecurityUser.builder()
                 .userId(user.getId())
                 .username(user.getEmail())

@@ -4,6 +4,7 @@ import com.example.geartrackapi.controller.tool.dto.AssignToolDto;
 import com.example.geartrackapi.controller.tool.dto.ToolDto;
 import com.example.geartrackapi.dao.model.EmployeeTool;
 import com.example.geartrackapi.dao.model.Tool;
+import com.example.geartrackapi.dao.model.ToolGroup;
 import com.example.geartrackapi.dao.repository.EmployeeToolRepository;
 import com.example.geartrackapi.dao.repository.ToolRepository;
 import com.example.geartrackapi.mapper.EmployeeToolMapper;
@@ -23,12 +24,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ToolCrudService {
-    
+
     private final ToolRepository toolRepository;
     private final EmployeeToolRepository employeeToolRepository;
     private final ToolMapper toolMapper;
     private final EmployeeToolMapper employeeToolMapper;
-    
+    private final ToolGroupCrudService toolGroupCrudService;
+
     public List<ToolDto> findAllTools() {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         return toolRepository.findByOrganizationIdAndHiddenFalse(organizationId)
@@ -38,69 +40,109 @@ public class ToolCrudService {
                 })
                 .collect(Collectors.toList());
     }
-    
+
     public ToolDto createTool(ToolDto toolDto) {
-        Tool tool = toolMapper.toEntity(toolDto);
+        ToolGroup toolGroup = toolGroupCrudService.getToolGroupById(toolDto.getGroupId());
+        Tool tool = toolMapper.toEntity(toolDto, toolGroup);
         return toolMapper.toDto(toolRepository.save(tool));
     }
-    
+
     public ToolDto updateTool(ToolDto toolDto) {
         Tool existing = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolDto.getUuid(), SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolDto.getUuid()));
-        Tool updated = toolMapper.updateEntity(existing, toolDto);
-        return toolMapper.toDto(toolRepository.save(updated));
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
+        ToolGroup toolGroup = toolGroupCrudService.getToolGroupById(toolDto.getGroupId());
+        toolMapper.updateEntity(existing, toolDto, toolGroup);
+        return toolMapper.toDto(toolRepository.save(existing));
     }
-    
+
     public void deleteTool(UUID id) {
-        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, SecurityUtils.getCurrentOrganizationId())
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + id));
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(id, organizationId)
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
+
         tool.setHidden(true);
         toolRepository.save(tool);
+
+        List<EmployeeTool> assignments = employeeToolRepository.findByOrganizationIdAndToolId(organizationId, id);
+        assignments.forEach(assignment -> assignment.setHidden(true));
+        employeeToolRepository.saveAll(assignments);
+
+        log.info("[deleteTool] Soft deleted tool {} and {} assignments", id, assignments.size());
     }
-    
+
     public AssignToolDto assignToolToEmployee(UUID toolId, UUID employeeId, AssignToolDto assignDto) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
         Tool tool = toolRepository.findByIdAndOrganizationIdAndHiddenFalse(toolId, organizationId)
-                .orElseThrow(() -> new EntityNotFoundException("Tool not found with UUID: " + toolId));
-        
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono narzędzia"));
+
         Integer totalAssigned = employeeToolRepository.getTotalAssignedQuantityByOrganizationIdAndToolId(organizationId, toolId);
         int availableQuantity = Math.max(0, tool.getQuantity() - totalAssigned);
-        
+
         if (assignDto.getQuantity() > availableQuantity) {
             throw new IllegalArgumentException(
-                String.format("Insufficient quantity. Available: %d, Requested: %d", 
-                    availableQuantity, assignDto.getQuantity()));
+                String.format("Niewystarczająca ilość. Dostępne: %d.",
+                    availableQuantity));
         }
 
         EmployeeTool employeeTool = employeeToolMapper.toEntity(toolId, employeeId, assignDto);
         return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
     }
-    
-    public void unassignToolFromEmployee(UUID toolId, UUID employeeId) {
+
+    public void unassignToolFromEmployee(UUID toolId, UUID employeeId, Integer quantity) {
         UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Ilość musi być większa niż 0");
+        }
+
         List<EmployeeTool> matchingAssignments = employeeToolRepository.findByOrganizationIdAndEmployeeId(organizationId, employeeId)
                 .stream()
-                .filter(et -> et.getToolId().equals(toolId))
+                .filter(et -> et.getToolId().equals(toolId) && !et.getHidden())
                 .collect(Collectors.toList());
-        
-        if (!matchingAssignments.isEmpty()) {
-            employeeToolRepository.deleteAll(matchingAssignments);
+
+        if (matchingAssignments.isEmpty()) {
+            throw new EntityNotFoundException("Nie znaleziono przypisania narzędzia");
+        }
+
+        EmployeeTool assignment = matchingAssignments.get(0);
+
+        if (quantity >= assignment.getQuantity()) {
+            assignment.setHidden(true);
+            employeeToolRepository.save(assignment);
+            log.info("[unassignToolFromEmployee] Soft deleted assignment {} (removed {} of {} items)",
+                    assignment.getId(), quantity, assignment.getQuantity());
+        } else {
+            assignment.setQuantity(assignment.getQuantity() - quantity);
+            employeeToolRepository.save(assignment);
+            log.info("[unassignToolFromEmployee] Reduced quantity for assignment {} from {} to {}",
+                    assignment.getId(), assignment.getQuantity() + quantity, assignment.getQuantity());
         }
     }
-    
+
     public List<AssignToolDto> getToolsAssignedToEmployee(UUID employeeId) {
         return employeeToolRepository.findByOrganizationIdAndEmployeeId(SecurityUtils.getCurrentOrganizationId(), employeeId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)
                 .collect(Collectors.toList());
     }
-    
+
     public List<AssignToolDto> getEmployeesAssignedToTool(UUID toolId) {
         return employeeToolRepository.findByOrganizationIdAndToolId(SecurityUtils.getCurrentOrganizationId(), toolId)
                 .stream()
                 .map(employeeToolMapper::toAssignToolDto)
                 .collect(Collectors.toList());
     }
-    
-    
+
+    public AssignToolDto markToolAsUsed(UUID employeeToolId) {
+        UUID organizationId = SecurityUtils.getCurrentOrganizationId();
+        EmployeeTool employeeTool = employeeToolRepository.findById(employeeToolId)
+                .orElseThrow(() -> new EntityNotFoundException("Nie znaleziono przypisania narzędzia"));
+
+        if (!employeeTool.getOrganizationId().equals(organizationId)) {
+            throw new IllegalArgumentException("Przypisanie narzędzia nie należy do bieżącej organizacji");
+        }
+
+        employeeTool.setUsedAt(LocalDate.now());
+        return employeeToolMapper.toAssignToolDto(employeeToolRepository.save(employeeTool));
+    }
 }

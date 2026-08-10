@@ -43,11 +43,15 @@ sqs:
     maxBatchesPerRun: 5
   url:
     read:
-      employeeChangeQueue: http://sqs.us-east-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
+      employeeChangeQueue: http://sqs.eu-central-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
 
 localstack:
   sqs:
-    employeeChangeQueue: http://sqs.us-east-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
+    employeeChangeQueue: http://sqs.eu-central-1.localhost.localstack.cloud:4567/000000000000/employeeChangeQueue
 
 server:
   port: 8080
+
+bi-analytics:
+  base-url: http://localhost:8081
+  timeout: 10000

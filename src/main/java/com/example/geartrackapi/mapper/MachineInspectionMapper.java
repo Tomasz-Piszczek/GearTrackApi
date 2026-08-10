@@ -18,8 +18,8 @@ public class MachineInspectionMapper {
     
     public MachineInspectionDto toDto(MachineInspection inspection) {
         Machine machine = machineRepository.findById(inspection.getMachineId()).orElseThrow(
-                () -> new EntityNotFoundException("Machine with id:" +inspection.getMachineId() + "not found"));
-        
+                () -> new EntityNotFoundException("Nie znaleziono maszyny"));
+
         return MachineInspectionDto.builder()
                 .uuid(inspection.getId())
                 .machineId(inspection.getMachineId())
@@ -28,6 +28,7 @@ public class MachineInspectionMapper {
                 .inspectionDate(inspection.getInspectionDate())
                 .notes(inspection.getNotes())
                 .status(inspection.getStatus())
+                .performedBy(inspection.getPerformedBy())
                 .createdAt(inspection.getCreatedAt().toLocalDate())
                 .updatedAt(inspection.getUpdatedAt().toLocalDate())
                 .build();
@@ -36,10 +37,13 @@ public class MachineInspectionMapper {
     public MachineInspection updateEntity(MachineInspection existing, CreateMachineInspectionDto dto) {
         return MachineInspection.builder()
                 .id(existing.getId())
+                .machineId(existing.getMachineId())
                 .inspectionDate(dto.getInspectionDate())
                 .notes(dto.getNotes())
                 .status(dto.getStatus() != null ? dto.getStatus() : existing.getStatus())
+                .performedBy(dto.getPerformedBy() != null ? dto.getPerformedBy() : existing.getPerformedBy())
                 .organizationId(existing.getOrganizationId())
+                .createdAt(existing.getCreatedAt())
                 .build();
     }
 }

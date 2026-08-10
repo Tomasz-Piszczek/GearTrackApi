@@ -25,7 +25,10 @@ public class EmployeeTool extends OrganizationalEntity {
     @Builder.Default
     @Column(name = "assigned_at", nullable = false)
     private LocalDate assignedAt = LocalDate.now();
-    
+
+    @Column(name = "used_at")
+    private LocalDate usedAt;
+
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
     

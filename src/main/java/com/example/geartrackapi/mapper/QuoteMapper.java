@@ -2,6 +2,7 @@ package com.example.geartrackapi.mapper;
 
 import com.example.geartrackapi.controller.quote.dto.*;
 import com.example.geartrackapi.dao.model.Quote;
+import com.example.geartrackapi.dao.model.QuoteAttachment;
 import com.example.geartrackapi.dao.model.QuoteMaterial;
 import com.example.geartrackapi.dao.model.QuoteProductionActivity;
 import com.example.geartrackapi.dao.model.User;
@@ -29,8 +30,10 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .note(dto.getNote())
                 .organizationId(SecurityUtils.getCurrentOrganizationId())
                 .userId(SecurityUtils.getCurrentUserId())
+                .approved(SecurityUtils.isCurrentUserAdmin())
                 .build();
     }
 
@@ -45,23 +48,24 @@ public class QuoteMapper {
                 .minQuantity(dto.getMinQuantity())
                 .totalQuantity(dto.getTotalQuantity())
                 .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
+                .note(dto.getNote())
                 .build();
     }
 
     public Quote updateEntity(Quote existing, UpdateQuoteDto dto) {
-        return Quote.builder()
-                .id(existing.getId())
-                .documentNumber(dto.getDocumentNumber())
-                .contractorCode(dto.getContractorCode())
-                .contractorName(dto.getContractorName())
-                .productCode(dto.getProductCode())
-                .productName(dto.getProductName())
-                .minQuantity(dto.getMinQuantity())
-                .totalQuantity(dto.getTotalQuantity())
-                .totalPrice(dto.getTotalPrice() != null ? java.math.BigDecimal.valueOf(dto.getTotalPrice()) : null)
-                .organizationId(existing.getOrganizationId())
-                .userId(existing.getUserId())
-                .build();
+        // Mutate the managed entity in place (rather than building a new detached
+        // instance) so that clear()/addAll() on its collections operates on the
+        // managed persistent collections and orphanRemoval deletes removed rows.
+        existing.setDocumentNumber(dto.getDocumentNumber());
+        existing.setContractorCode(dto.getContractorCode());
+        existing.setContractorName(dto.getContractorName());
+        existing.setProductCode(dto.getProductCode());
+        existing.setProductName(dto.getProductName());
+        existing.setMinQuantity(dto.getMinQuantity());
+        existing.setTotalQuantity(dto.getTotalQuantity());
+        existing.setTotalPrice(java.math.BigDecimal.valueOf(dto.getTotalPrice()));
+        existing.setNote(dto.getNote());
+        return existing;
     }
 
     public QuoteListDto toListDto(Quote entity) {
@@ -86,6 +90,7 @@ public class QuoteMapper {
                 .updatedAt(entity.getUpdatedAt())
                 .createdBy(entity.getUserId())
                 .createdByEmail(createdByEmail)
+                .approved(entity.isApproved())
                 .build();
     }
 
@@ -100,10 +105,13 @@ public class QuoteMapper {
                 .minQuantity(entity.getMinQuantity())
                 .totalQuantity(entity.getTotalQuantity())
                 .totalPrice(entity.getTotalPrice() != null ? entity.getTotalPrice().doubleValue() : null)
+                .note(entity.getNote())
                 .materials(entity.getMaterials().stream().map(this::toMaterialDto).collect(Collectors.toList()))
                 .productionActivities(entity.getProductionActivities().stream().map(this::toProductionActivityDto).collect(Collectors.toList()))
+                .attachments(entity.getAttachments().stream().map(this::toAttachmentDto).collect(Collectors.toList()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
+                .approved(entity.isApproved())
                 .build();
     }
 
@@ -164,7 +172,7 @@ public class QuoteMapper {
     public QuoteProductionActivityDto toProductionActivityDto(QuoteProductionActivity entity) {
         Integer hours = entity.getWorkTimeMinutes() / 60;
         Integer minutes = entity.getWorkTimeMinutes() % 60;
-        
+
         return QuoteProductionActivityDto.builder()
                 .uuid(entity.getId())
                 .name(entity.getName())
@@ -174,6 +182,16 @@ public class QuoteMapper {
                 .marginPercent(entity.getMarginPercent())
                 .marginPln(entity.getMarginPln())
                 .ignoreMinQuantity(entity.getIgnoreMinQuantity())
+                .build();
+    }
+
+    public QuoteAttachmentDto toAttachmentDto(QuoteAttachment entity) {
+        return QuoteAttachmentDto.builder()
+                .uuid(entity.getId())
+                .fileName(entity.getFileName())
+                .fileType(entity.getFileType())
+                .fileSize(entity.getFileSize())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }
