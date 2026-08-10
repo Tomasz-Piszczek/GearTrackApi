@@ -17,12 +17,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/payroll")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 public class PayrollController {
     
     private final PayrollService payrollService;
     
     @GetMapping("/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PayrollRecordDto>> getPayrollRecords(
             @PathVariable Integer year,
             @PathVariable Integer month,
@@ -33,6 +33,7 @@ public class PayrollController {
     }
     
     @PostMapping("/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> savePayrollRecords(
             @PathVariable Integer year,
             @PathVariable Integer month,
@@ -43,12 +44,14 @@ public class PayrollController {
     }
 
     @GetMapping("/categories")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<String>> getCategories() {
         log.info("[getCategories] Getting all payroll deduction categories");
         return ResponseEntity.ok(payrollService.getAllCategories());
     }
 
     @DeleteMapping("/categories/{category}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable String category) {
         log.info("[deleteCategory] Deleting category: {}", category);
         payrollService.deleteCategory(category);
@@ -56,12 +59,14 @@ public class PayrollController {
     }
 
     @GetMapping("/employees/{employeeId}/deductions")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PayrollDeductionDto>> getEmployeeDeductions(@PathVariable UUID employeeId) {
         log.info("[getEmployeeDeductions] Getting deductions for employee: {}", employeeId);
         return ResponseEntity.ok(payrollService.getEmployeeDeductions(employeeId));
     }
 
     @GetMapping("/employee-hours/{employeeName}/{year}/{month}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<EmployeeWorkingHoursDto> getEmployeeWorkingHours(
             @PathVariable String employeeName,
             @PathVariable Integer year,
